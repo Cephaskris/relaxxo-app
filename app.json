@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "Relaxxo",
+    "slug": "relaxxo",
+    "scheme": "relaxxo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#EDEDEA",
+    "newArchEnabled": true,
+    "android": {
+      "package": "com.relaxxo.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#D7F24A"
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "ios": {
+      "bundleIdentifier": "com.relaxxo.app",
+      "supportsTablet": false
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Relaxxo uses your location to show therapists and stays near you."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Relaxxo needs your photos to add profile, room and verification pictures."
+        }
+      ],
+      "expo-notifications"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    },
+    "icon": "./assets/icon.png",
+    "splash": {
+      "backgroundColor": "#EDEDEA",
+      "image": "./assets/icon.png",
+      "resizeMode": "contain"
+    }
+  }
+}

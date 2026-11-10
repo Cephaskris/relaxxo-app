@@ -1,0 +1,121 @@
+import React, { useState } from "react";
+import { Pressable, View } from "react-native";
+import { router } from "expo-router";
+import { useMutation, useQuery } from "convex/react";
+import { Wallet } from "lucide-react-native";
+import { api } from "@/convex/_generated/api";
+import { Screen, T, Row, Btn, Card, ErrorNote, Loading } from "@/components/ui";
+import { RoomsManager } from "@/components/RoomsManager";
+import { Sheet } from "@/components/Sheet";
+import { Packs } from "@/components/Packs";
+import { C, F, ICON } from "@/lib/theme";
+import { errorMessage, timeLeft } from "@/lib/util";
+
+export default function HotelDashboard() {
+  const me = useQuery(api.users.me);
+  const h = useQuery(api.hotels.mine);
+  const settings = useQuery(api.settings.publicSettings);
+  const goOnline = useMutation(api.hotels.goOnline);
+  const goOffline = useMutation(api.hotels.goOffline);
+  const [pick, setPick] = useState(2);
+  const [topUpOpen, setTopUpOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!h || !settings || !me) return <Loading />;
+  const online = h.onlineUntil > Date.now();
+  const option = settings.onlineOptions[Math.min(pick, settings.onlineOptions.length - 1)];
+  const enough = me.credits >= option.credits;
+  const liveRooms = h.rooms.filter((r) => r.status === "approved" && r.availableCount > 0).length;
+
+  async function act() {
+    setError(null);
+    setBusy(true);
+    try {
+      if (online) await goOffline({});
+      else if (enough) await goOnline({ optionId: option.id });
+      else setTopUpOpen(true);
+    } catch (e) {
+      setError(errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Screen>
+      <Row style={{ justifyContent: "space-between" }}>
+        <T v="label" style={{ fontSize: 15 }}>{h.area}</T>
+        <Pressable
+          onPress={() => router.push("/host/wallet")}
+          style={{ height: 44, paddingHorizontal: 14, borderRadius: 22, backgroundColor: C.card, flexDirection: "row", alignItems: "center", gap: 6 }}
+        >
+          <Wallet size={18} strokeWidth={ICON.stroke} color={C.ink} />
+          <T style={{ fontFamily: F.medium }}>{me.credits} CC</T>
+        </Pressable>
+      </Row>
+      <T v="title" style={{ marginTop: 18 }}>{h.name}</T>
+
+      <Card style={{ marginTop: 18, minHeight: 180, justifyContent: "space-between", backgroundColor: online ? C.lime : C.ink, padding: 22, gap: 10 }}>
+        <T v="label" style={{ color: online ? C.ink : "#BDBDB7" }}>Visibility</T>
+        <T style={{ fontFamily: F.regular, fontSize: 52, lineHeight: 58, letterSpacing: -1.6, color: online ? C.ink : "#FFFFFF" }}>{online ? "Online" : "Offline"}</T>
+        <T style={{ color: online ? C.ink : "#BDBDB7" }}>
+          {online ? `${timeLeft(h.onlineUntil)} left · ${liveRooms} room types showing` : "Guests can't see your rooms right now"}
+        </T>
+      </Card>
+      <Row style={{ marginTop: 16 }} gap={10}>
+        <Card style={{ flex: 1, padding: 16 }}>
+          <T v="value">{h.contactViewsToday}</T>
+          <T v="small">Contact views today</T>
+        </Card>
+        <Card style={{ flex: 1, padding: 16 }}>
+          <T v="value">{liveRooms}</T>
+          <T v="small">Available room types</T>
+        </Card>
+      </Row>
+      {liveRooms === 0 ? <T v="small" style={{ marginTop: 8 }}>You need at least one approved room with availability to appear in search.</T> : null}
+
+      {!online ? (
+        <>
+          <T v="label" style={{ marginTop: 22, marginBottom: 10 }}>Go online for</T>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+            {settings.onlineOptions.map((o, i) => {
+              const sel = i === pick;
+              return (
+                <Pressable
+                  key={o.id}
+                  onPress={() => setPick(i)}
+                  style={{ width: "48%", flexGrow: 1, height: 80, borderRadius: 24, backgroundColor: sel ? C.lime : C.card, borderWidth: 2, borderColor: sel ? C.ink : C.card, justifyContent: "center", paddingHorizontal: 18 }}
+                >
+                  <T style={{ fontFamily: F.medium, fontSize: 18 }}>{o.label}</T>
+                  <T v="small" style={{ color: C.ink }}>{o.credits} CC</T>
+                </Pressable>
+              );
+            })}
+          </View>
+          <T v="small" style={{ marginTop: 8 }}>Going offline early doesn't refund unused time.</T>
+        </>
+      ) : null}
+
+      <View style={{ marginTop: 18, gap: 10 }}>
+        <ErrorNote text={error} />
+        <Btn
+          label={online ? "Go offline" : enough ? `Go online · ${option.credits} CC` : "Top up CC to go online"}
+          tone={online || !enough ? "light" : "lime"}
+          arrow
+          loading={busy}
+          onPress={act}
+        />
+        {online ? <Btn label={`Extend by ${option.label} (${option.credits} CC)`} tone="dark" onPress={() => (enough ? goOnline({ optionId: option.id }).catch((e) => setError(errorMessage(e))) : setTopUpOpen(true))} /> : null}
+      </View>
+
+      <T v="h2" style={{ marginTop: 28, marginBottom: 12 }}>Today's availability</T>
+      <RoomsManager rooms={h.rooms} compact />
+
+      <Sheet visible={topUpOpen} onClose={() => setTopUpOpen(false)} title="Top up Connection Credits (CC)">
+        <T v="label">You need {option.credits} CC for {option.label}. You have {me.credits} CC.</T>
+        <Packs returnTo="/host" onSuccess={() => setTopUpOpen(false)} />
+      </Sheet>
+    </Screen>
+  );
+}
