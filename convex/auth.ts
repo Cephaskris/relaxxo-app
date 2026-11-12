@@ -30,7 +30,8 @@ const TermiiOTP = Phone({
       return;
     }
     const apiKey = process.env.TERMII_API_KEY;
-    const senderId = process.env.TERMII_SENDER_ID ?? "Relaxxo";
+    const senderId = process.env.TERMII_SENDER_ID ?? "TEAMHIRELY";
+    const channel = process.env.TERMII_CHANNEL ?? "generic";
     if (!apiKey) throw new Error("SMS is not configured");
     const res = await fetch("https://api.ng.termii.com/api/sms/send", {
       method: "POST",
@@ -41,11 +42,12 @@ const TermiiOTP = Phone({
         from: senderId,
         sms: `Your Relaxxo code is ${token}. It expires in 10 minutes. Never share it.`,
         type: "plain",
-        channel: "dnd", // delivers to DND-enabled Nigerian numbers
+        channel,
       }),
     });
     if (!res.ok) {
-      console.error("Termii send failed", res.status, await res.text());
+      const errText = await res.text();
+      console.error("Termii send failed", res.status, errText);
       throw new Error("Could not send the code. Try again.");
     }
   },

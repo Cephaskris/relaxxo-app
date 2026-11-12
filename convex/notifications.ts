@@ -24,7 +24,8 @@ export const sendSms = internalAction({
   args: { phone: v.string(), message: v.string() },
   handler: async (_ctx, { phone, message }): Promise<void> => {
     const apiKey = process.env.TERMII_API_KEY;
-    const senderId = process.env.TERMII_SENDER_ID ?? "Relaxxo";
+    const senderId = process.env.TERMII_SENDER_ID ?? "TEAMHIRELY";
+    const channel = process.env.TERMII_CHANNEL ?? "generic";
     if (!apiKey || !phone) return;
     try {
       await fetch("https://api.ng.termii.com/api/sms/send", {
@@ -36,7 +37,7 @@ export const sendSms = internalAction({
           from: senderId,
           sms: message,
           type: "plain",
-          channel: "dnd",
+          channel,
         }),
       });
     } catch (e) {
