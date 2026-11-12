@@ -40,6 +40,14 @@ export const unlock = mutation({
       refunded: false,
       lastMessageAt: now,
     });
+    const paystackReady = !!process.env.PAYSTACK_SECRET_KEY && process.env.OTP_BYPASS !== "true";
+    const currentCredits = client.credits ?? 0;
+    if (!paystackReady && currentCredits < settings.unlockCost) {
+      await applyCredits(ctx, client._id, settings.unlockCost - currentCredits, "bonus", {
+        refId: unlockId,
+        note: "Free CC grant (Connect)",
+      });
+    }
     await applyCredits(ctx, client._id, -settings.unlockCost, "unlock", { refId: unlockId });
     await ctx.scheduler.runAfter(0, internal.notifications.send, {
       userId: t.userId,

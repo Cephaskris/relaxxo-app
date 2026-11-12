@@ -44,22 +44,27 @@ export const createPending = internalMutation({
 
 export const initialize = action({
   args: { packId: v.string(), platform: v.union(v.literal("web"), v.literal("native")) },
-  handler: async (ctx, { packId, platform }): Promise<{ url: string; reference: string }> => {
+  handler: async (ctx, { packId, platform }): Promise<{ url: string; reference: string; credited?: boolean }> => {
     const userId = await getAuthUserId(ctx);
     if (!userId) throw new ConvexError("Please sign in");
     const secret = process.env.PAYSTACK_SECRET_KEY;
     const site = process.env.SITE_URL;
-    const isDevSim = !secret && process.env.OTP_DEV_MODE === "true";
-    if ((!secret && !isDevSim) || !site) throw new ConvexError("Payments are not configured");
+    const isBypass = !secret || process.env.OTP_BYPASS === "true" || process.env.OTP_DEV_MODE === "true";
     const { reference, amountKobo, phone } = await ctx.runMutation(internal.payments.createPending, {
       userId,
       packId,
     });
-    const callback = `${site}/payment-return${platform === "native" ? "?app=1" : ""}`;
-    if (isDevSim) {
-      const sep = callback.includes("?") ? "&" : "?";
-      return { url: `${callback}${sep}reference=${encodeURIComponent(reference)}`, reference };
+    if (isBypass) {
+      await ctx.runMutation(internal.payments.complete, {
+        reference,
+        amountKobo,
+        currency: "NGN",
+        gatewayResponse: "PAYSTACK_BYPASS_FREE_CC",
+      });
+      return { url: "", reference, credited: true };
     }
+    if (!site) throw new ConvexError("Payments are not configured");
+    const callback = `${site}/payment-return${platform === "native" ? "?app=1" : ""}`;
     // Paystack needs an email; we use a non-routable one derived from the phone number.
     const email = `${phone.replace(/\D/g, "") || userId}@users.relaxxo.app`;
     const res = await fetch("https://api.paystack.co/transaction/initialize", {

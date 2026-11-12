@@ -19,7 +19,12 @@ export function usePurchase(opts?: { returnTo?: string; onSuccess?: () => void }
     setMessage(null);
     setBusyPack(packId);
     try {
-      const { url, reference } = await initialize({ packId, platform: Platform.OS === "web" ? "web" : "native" });
+      const { url, reference, credited } = await initialize({ packId, platform: Platform.OS === "web" ? "web" : "native" });
+      if (credited || !url) {
+        setMessage("Connection Credits (CC) added to your wallet!");
+        opts?.onSuccess?.();
+        return;
+      }
       if (Platform.OS === "web") {
         try {
           if (opts?.returnTo) window.sessionStorage.setItem("relaxxo_return_to", opts.returnTo);

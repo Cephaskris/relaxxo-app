@@ -27,11 +27,16 @@ export function errorMessage(e: unknown): string {
   return "Something went wrong. Please try again.";
 }
 
-export function timeLeft(until: number) {
-  const mins = Math.max(0, Math.round((until - Date.now()) / 60000));
-  if (mins >= 60 * 24) return `${Math.floor(mins / 1440)}d ${Math.floor((mins % 1440) / 60)}h`;
-  if (mins >= 60) return `${Math.floor(mins / 60)}h ${mins % 60}m`;
-  return `${mins}m`;
+export function timeLeft(until: number, now = Date.now()) {
+  const totalSec = Math.max(0, Math.floor((until - now) / 1000));
+  const days = Math.floor(totalSec / 86400);
+  const hours = Math.floor((totalSec % 86400) / 3600);
+  const mins = Math.floor((totalSec % 3600) / 60);
+  const secs = totalSec % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  if (days > 0) return `${days}d ${pad(hours)}h ${pad(mins)}m ${pad(secs)}s`;
+  if (hours > 0) return `${pad(hours)}h ${pad(mins)}m ${pad(secs)}s`;
+  return `${pad(mins)}m ${pad(secs)}s`;
 }
 
 export function minutesLabel(mins: number) {

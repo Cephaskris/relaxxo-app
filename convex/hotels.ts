@@ -126,6 +126,14 @@ export const goOnline = mutation({
     const option = settings.onlineOptions.find((o) => o.id === optionId);
     if (!option) throw new ConvexError("Unknown option");
     const now = Date.now();
+    const paystackReady = !!process.env.PAYSTACK_SECRET_KEY && process.env.OTP_BYPASS !== "true";
+    const currentCredits = user.credits ?? 0;
+    if (!paystackReady && currentCredits < option.credits) {
+      await applyCredits(ctx, user._id, option.credits - currentCredits, "bonus", {
+        refId: h._id,
+        note: `Free CC grant (${option.label})`,
+      });
+    }
     await applyCredits(ctx, user._id, -option.credits, "online", { refId: h._id, note: option.label });
     const until = Math.max(now, h.onlineUntil) + option.hours * 3600_000;
     await ctx.db.patch(h._id, { onlineUntil: until });
@@ -133,7 +141,17 @@ export const goOnline = mutation({
     if (remindAt > now) {
       await ctx.scheduler.runAt(remindAt, internal.hotels.remindEnding, { hotelId: h._id, until });
     }
+    await ctx.scheduler.runAt(until, internal.hotels.expireOnline, { hotelId: h._id, until });
     return until;
+  },
+});
+
+export const expireOnline = internalMutation({
+  args: { hotelId: v.id("hotels"), until: v.number() },
+  handler: async (ctx, { hotelId, until }) => {
+    const h = await ctx.db.get(hotelId);
+    if (!h || h.onlineUntil !== until) return;
+    await ctx.db.patch(hotelId, { onlineUntil: 0 });
   },
 });
 
@@ -201,7 +219,14 @@ export const listNearby = query({
 
     const selectedAreas = [...(a.areas ?? []), ...(a.area ? [a.area] : [])]
       .map((s) => s.trim().toLowerCase())
-      .filter((s) => s && !s.startsWith("all of ") && !s.startsWith("whole of ") && s !== "all areas");
+      .filter(
+        (s) =>
+          s &&
+          !s.startsWith("all of ") &&
+          !s.startsWith("all in ") &&
+          !s.startsWith("whole of ") &&
+          s !== "all areas",
+      );
 
     const out = [];
     for (const h of hotels) {
@@ -209,6 +234,7 @@ export const listNearby = query({
       const km = distanceKm(a.lat, a.lng, h.lat, h.lng);
       const isCityWide =
         h.area.startsWith("All of ") ||
+        h.area.startsWith("All in ") ||
         h.area.startsWith("Whole of ") ||
         h.area === "All areas";
       const hotelAreas = h.area

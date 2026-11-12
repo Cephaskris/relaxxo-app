@@ -171,6 +171,14 @@ export const goOnline = mutation({
     const option = settings.onlineOptions.find((o) => o.id === optionId);
     if (!option) throw new ConvexError("Unknown option");
     const now = Date.now();
+    const paystackReady = !!process.env.PAYSTACK_SECRET_KEY && process.env.OTP_BYPASS !== "true";
+    const currentCredits = user.credits ?? 0;
+    if (!paystackReady && currentCredits < option.credits) {
+      await applyCredits(ctx, user._id, option.credits - currentCredits, "bonus", {
+        refId: t._id,
+        note: `Free CC grant (${option.label})`,
+      });
+    }
     await applyCredits(ctx, user._id, -option.credits, "online", { refId: t._id, note: option.label });
     const until = Math.max(now, t.onlineUntil) + option.hours * 3600_000;
     await ctx.db.patch(t._id, { onlineUntil: until });
@@ -181,7 +189,20 @@ export const goOnline = mutation({
         until,
       });
     }
+    await ctx.scheduler.runAt(until, internal.therapists.expireOnline, {
+      therapistId: t._id,
+      until,
+    });
     return until;
+  },
+});
+
+export const expireOnline = internalMutation({
+  args: { therapistId: v.id("therapists"), until: v.number() },
+  handler: async (ctx, { therapistId, until }) => {
+    const t = await ctx.db.get(therapistId);
+    if (!t || t.onlineUntil !== until) return;
+    await ctx.db.patch(therapistId, { onlineUntil: 0 });
   },
 });
 
@@ -298,7 +319,14 @@ export const listNearby = query({
 
     const selectedAreas = [...(a.areas ?? []), ...(a.area ? [a.area] : [])]
       .map((s) => s.trim().toLowerCase())
-      .filter((s) => s && !s.startsWith("all of ") && !s.startsWith("whole of ") && s !== "all areas");
+      .filter(
+        (s) =>
+          s &&
+          !s.startsWith("all of ") &&
+          !s.startsWith("all in ") &&
+          !s.startsWith("whole of ") &&
+          s !== "all areas",
+      );
 
     const out = [];
     for (const t of candidates) {
@@ -308,6 +336,7 @@ export const listNearby = query({
       const km = distanceKm(a.lat, a.lng, t.lat, t.lng);
       const isCityWide =
         t.area.startsWith("All of ") ||
+        t.area.startsWith("All in ") ||
         t.area.startsWith("Whole of ") ||
         t.area === "All areas";
       const therapistAreas = t.area

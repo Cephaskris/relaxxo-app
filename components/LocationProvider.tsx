@@ -4,8 +4,9 @@ import { CITIES, CITY_NAMES } from "@/lib/areas";
 
 type Loc = {
   city: string; // Nigerian State (e.g. "Lagos", "Abuja", "Sokoto", "Oyo")
+  wheelIndex: number; // 0 = "All in {State}", 1..N = CITIES[city][wheelIndex - 1]
   areaIndex: number;
-  selectedAreas: string[]; // Empty = whole state; non-empty = streamlined cities in that state
+  selectedAreas: string[]; // Empty = all cities in the state; non-empty = specific city/cities
   label: string;
   lat: number;
   lng: number;
@@ -14,8 +15,10 @@ type Loc = {
 
 type Ctx = Loc & {
   stateIndex: number;
+  wheelNames: string[];
   setCity: (city: string) => void;
   setStateByIndex: (index: number) => void;
+  setWheelIndex: (index: number) => void;
   setArea: (index: number) => void;
   toggleCityArea: (areaName: string) => void;
   setAllAreas: () => void;
@@ -45,9 +48,10 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
   const first = CITIES.Lagos[0];
   const [loc, setLoc] = useState<Loc>({
     city: "Lagos",
+    wheelIndex: 0,
     areaIndex: 0,
     selectedAreas: [],
-    label: "Lagos",
+    label: "All in Lagos",
     lat: first.lat,
     lng: first.lng,
     source: "all",
@@ -55,35 +59,71 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<Ctx>(() => {
     const stateIndex = Math.max(0, CITY_NAMES.indexOf(loc.city));
+    const areas = CITIES[loc.city] ?? CITIES.Lagos;
+    const wheelNames = [`All in ${loc.city}`, ...areas.map((a) => a.name)];
 
     const selectState = (city: string) => {
-      const areas = CITIES[city] ?? CITIES.Lagos;
-      const a = areas[0];
+      const nextAreas = CITIES[city] ?? CITIES.Lagos;
+      const a = nextAreas[0];
       setLoc({
         city,
+        wheelIndex: 0,
         areaIndex: 0,
         selectedAreas: [],
-        label: city,
+        label: `All in ${city}`,
         lat: a.lat,
         lng: a.lng,
         source: "all",
       });
     };
 
+    const selectWheel = (wIdx: number) => {
+      const clamped = Math.max(0, Math.min(wheelNames.length - 1, wIdx));
+      if (clamped === 0) {
+        const a = areas[0];
+        setLoc({
+          ...loc,
+          wheelIndex: 0,
+          areaIndex: 0,
+          selectedAreas: [],
+          label: `All in ${loc.city}`,
+          lat: a.lat,
+          lng: a.lng,
+          source: "all",
+        });
+      } else {
+        const a = areas[clamped - 1];
+        if (a) {
+          setLoc({
+            ...loc,
+            wheelIndex: clamped,
+            areaIndex: clamped - 1,
+            selectedAreas: [a.name],
+            label: a.name,
+            lat: a.lat,
+            lng: a.lng,
+            source: "area",
+          });
+        }
+      }
+    };
+
     return {
       ...loc,
       stateIndex,
+      wheelNames,
       setCity: selectState,
       setStateByIndex: (index: number) => {
         const city = CITY_NAMES[index];
         if (city) selectState(city);
       },
+      setWheelIndex: selectWheel,
       setArea: (index: number) => {
-        const areas = CITIES[loc.city] ?? CITIES.Lagos;
         const a = areas[index];
         if (a) {
           setLoc({
             ...loc,
+            wheelIndex: index + 1,
             areaIndex: index,
             selectedAreas: [a.name],
             label: a.name,
@@ -94,27 +134,18 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
         }
       },
       toggleCityArea: (areaName: string) => {
-        const areas = CITIES[loc.city] ?? CITIES.Lagos;
         const exists = loc.selectedAreas.includes(areaName);
         const next = exists
           ? loc.selectedAreas.filter((n) => n !== areaName)
           : [...loc.selectedAreas, areaName];
         if (next.length === 0) {
-          const a = areas[0];
-          setLoc({
-            ...loc,
-            areaIndex: 0,
-            selectedAreas: [],
-            label: loc.city,
-            lat: a.lat,
-            lng: a.lng,
-            source: "all",
-          });
+          selectWheel(0);
         } else {
           const matched = areas.find((x) => x.name === next[0]) ?? areas[0];
           const idx = Math.max(0, areas.findIndex((x) => x.name === next[0]));
           setLoc({
             ...loc,
+            wheelIndex: idx + 1,
             areaIndex: idx,
             selectedAreas: next,
             label: next.length === 1 ? next[0] : `${next.length} cities in ${loc.city}`,
@@ -124,23 +155,12 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
           });
         }
       },
-      setAllAreas: () => {
-        const areas = CITIES[loc.city] ?? CITIES.Lagos;
-        const a = areas[0];
-        setLoc({
-          ...loc,
-          areaIndex: 0,
-          selectedAreas: [],
-          label: loc.city,
-          lat: a.lat,
-          lng: a.lng,
-          source: "all",
-        });
-      },
+      setAllAreas: () => selectWheel(0),
       setCustom: (label, lat, lng) =>
         setLoc({
           ...loc,
           city: nearestState(lat, lng, loc.city),
+          wheelIndex: 0,
           selectedAreas: [],
           label,
           lat,
@@ -155,6 +175,7 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
         setLoc({
           ...loc,
           city: nearestState(latitude, longitude, loc.city),
+          wheelIndex: 0,
           selectedAreas: [],
           label: "Near you",
           lat: latitude,

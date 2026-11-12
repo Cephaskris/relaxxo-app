@@ -3,11 +3,12 @@ import { Pressable, ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { useConvexAuth, useQuery } from "convex/react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MapPin, Search, LocateFixed } from "lucide-react-native";
+import { MapPin, ChevronDown, Search, LocateFixed, Check } from "lucide-react-native";
 import { api } from "@/convex/_generated/api";
-import { T, Chip, Row, Btn, CircleBtn, ErrorNote } from "@/components/ui";
+import { T, Chip, Row, Btn, CircleBtn, Field, ErrorNote } from "@/components/ui";
 import { AreaWheel } from "@/components/AreaWheel";
 import { PlaceSearch } from "@/components/PlaceSearch";
+import { Sheet } from "@/components/Sheet";
 import { useLoc } from "@/components/LocationProvider";
 import { CITIES, CITY_NAMES } from "@/lib/areas";
 import { C, F, ICON } from "@/lib/theme";
@@ -17,6 +18,8 @@ export default function ClientHome() {
   const loc = useLoc();
   const { isAuthenticated } = useConvexAuth();
   const [mode, setMode] = useState<"therapists" | "stays">("therapists");
+  const [stateDropdownOpen, setStateDropdownOpen] = useState(false);
+  const [stateFilter, setStateFilter] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const stateAreas = CITIES[loc.city] ?? CITIES.Lagos;
@@ -44,7 +47,7 @@ export default function ClientHome() {
     loc.source === "gps"
       ? "Near you"
       : loc.selectedAreas.length === 0
-        ? `All of ${loc.city}`
+        ? `All in ${loc.city}`
         : loc.selectedAreas.length === 1
           ? `${loc.selectedAreas[0]}, ${loc.city}`
           : `${loc.selectedAreas.length} cities in ${loc.city}`;
@@ -73,11 +76,21 @@ export default function ClientHome() {
     }
   }
 
+  const filteredStates = CITY_NAMES.filter((s) =>
+    s.toLowerCase().includes(stateFilter.trim().toLowerCase()),
+  );
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={["top"]}>
       <View style={{ flex: 1, width: "100%", maxWidth: 560, alignSelf: "center" }}>
         <Row style={{ justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 12 }}>
-          <View
+          <Pressable
+            onPress={() => {
+              setStateFilter("");
+              setStateDropdownOpen(true);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Choose Nigerian State"
             style={{
               flexDirection: "row",
               alignItems: "center",
@@ -89,8 +102,9 @@ export default function ClientHome() {
             }}
           >
             <MapPin size={20} strokeWidth={ICON.stroke} color={C.ink} />
-            <T style={{ fontFamily: F.medium, fontSize: 15 }}>{loc.city} State</T>
-          </View>
+            <T style={{ fontFamily: F.medium, fontSize: 16 }}>{loc.city}</T>
+            <ChevronDown size={18} strokeWidth={ICON.stroke} color={C.ink} />
+          </Pressable>
           <Row gap={8}>
             {!isAuthenticated ? (
               <Pressable
@@ -154,55 +168,43 @@ export default function ClientHome() {
           </View>
         ) : null}
 
-        {/* 36 Nigerian States + Abuja Scroll Wheel */}
-        <View style={{ flex: 1, justifyContent: "center", minHeight: 260 }}>
+        {/* Scroll Dialer for Cities in the Selected State (with "All in {State}" at index 0) */}
+        <View style={{ flex: 1, justifyContent: "center", minHeight: 270 }}>
           {loc.source === "gps" || loc.source === "search" ? (
             <View style={{ paddingHorizontal: 24, gap: 10 }}>
               <T v="label">Searching around</T>
               <T v="title">{loc.label}</T>
-              <Btn label="Browse by Nigerian State instead" tone="light" onPress={() => loc.setAllAreas()} />
+              <Btn label={`Pick a city in ${loc.city} instead`} tone="light" onPress={() => loc.setAllAreas()} />
             </View>
           ) : (
             <AreaWheel
-              names={CITY_NAMES}
-              selected={loc.stateIndex}
-              onChange={(idx) => loc.setStateByIndex(idx)}
+              names={loc.wheelNames}
+              selected={loc.wheelIndex}
+              onChange={(idx) => loc.setWheelIndex(idx)}
               onSelectActive={openResults}
-              height={290}
+              height={300}
             />
           )}
         </View>
 
-        {/* Streamline by cities inside the selected State */}
+        {/* Quick horizontal tabs for "All in {State}" and cities in the State */}
         <View style={{ gap: 6, marginBottom: 12 }}>
-          <Row style={{ justifyContent: "space-between", paddingHorizontal: 24 }}>
-            <T v="small" style={{ color: C.muted }}>
-              Cities in {loc.city} (tap to streamline, or view whole state)
-            </T>
-            {loc.selectedAreas.length > 0 ? (
-              <Pressable onPress={() => loc.setAllAreas()}>
-                <T v="small" style={{ fontFamily: F.medium, color: C.ink }}>
-                  Reset to all of {loc.city}
-                </T>
-              </Pressable>
-            ) : null}
-          </Row>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: 8, paddingHorizontal: 24 }}
           >
             <Chip
-              label={`Whole of ${loc.city}`}
-              active={loc.selectedAreas.length === 0 && loc.source !== "gps"}
-              onPress={() => loc.setAllAreas()}
+              label={`All in ${loc.city}`}
+              active={loc.wheelIndex === 0 && loc.source !== "gps"}
+              onPress={() => loc.setWheelIndex(0)}
             />
-            {stateAreas.map((a) => (
+            {stateAreas.map((a, idx) => (
               <Chip
                 key={a.name}
                 label={a.name}
                 active={loc.selectedAreas.includes(a.name)}
-                onPress={() => loc.toggleCityArea(a.name)}
+                onPress={() => loc.setWheelIndex(idx + 1)}
               />
             ))}
           </ScrollView>
@@ -212,6 +214,56 @@ export default function ClientHome() {
           <Btn label={cta} arrow disabled={!data?.open} onPress={openResults} />
         </View>
       </View>
+
+      {/* Top-Left Dropdown Sheet for all 36 Nigerian States + Abuja */}
+      <Sheet
+        visible={stateDropdownOpen}
+        onClose={() => setStateDropdownOpen(false)}
+        title="Choose your State (36 States + Abuja)"
+      >
+        <Field
+          label="Search state"
+          placeholder="Type state name (e.g. Lagos, Abuja, Sokoto, Oyo…)"
+          value={stateFilter}
+          onChangeText={setStateFilter}
+        />
+        <ScrollView style={{ maxHeight: 340 }} showsVerticalScrollIndicator>
+          <View style={{ gap: 6, paddingVertical: 4 }}>
+            {filteredStates.map((stateName) => {
+              const active = loc.city === stateName;
+              const citiesCount = (CITIES[stateName] ?? []).length;
+              return (
+                <Pressable
+                  key={stateName}
+                  onPress={() => {
+                    loc.setCity(stateName);
+                    setStateDropdownOpen(false);
+                  }}
+                  accessibilityRole="button"
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    paddingHorizontal: 16,
+                    paddingVertical: 14,
+                    borderRadius: 18,
+                    backgroundColor: active ? C.lime : C.card,
+                  }}
+                >
+                  <View>
+                    <T style={{ fontFamily: F.medium, fontSize: 16 }}>{stateName}</T>
+                    <T v="small" style={{ color: active ? C.ink : C.muted }}>
+                      All in {stateName} · {citiesCount} major cities
+                    </T>
+                  </View>
+                  {active ? <Check size={20} strokeWidth={ICON.stroke} color={C.ink} /> : null}
+                </Pressable>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </Sheet>
+
       <PlaceSearch
         visible={searchOpen}
         onClose={() => setSearchOpen(false)}

@@ -43,7 +43,7 @@ export function Packs({ returnTo, onSuccess }: { returnTo?: string; onSuccess?: 
       })}
       {message ? <T v="label">{message}</T> : null}
       <ErrorNote text={error} />
-      <T v="small">Secure payment by Paystack. Connection Credits (CC) don't expire and can't be cashed out.</T>
+      <T v="small">Tap any pack above to claim Connection Credits (CC) immediately while Paystack is being finalized.</T>
     </View>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 import { router } from "expo-router";
 import { useMutation, useQuery } from "convex/react";
@@ -21,11 +21,16 @@ export default function HotelDashboard() {
   const [topUpOpen, setTopUpOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   if (!h || !settings || !me) return <Loading />;
-  const online = h.onlineUntil > Date.now();
+  const online = h.onlineUntil > now;
   const option = settings.onlineOptions[Math.min(pick, settings.onlineOptions.length - 1)];
-  const enough = me.credits >= option.credits;
   const liveRooms = h.rooms.filter((r) => r.status === "approved" && r.availableCount > 0).length;
 
   async function act() {
@@ -33,8 +38,7 @@ export default function HotelDashboard() {
     setBusy(true);
     try {
       if (online) await goOffline({});
-      else if (enough) await goOnline({ optionId: option.id });
-      else setTopUpOpen(true);
+      else await goOnline({ optionId: option.id });
     } catch (e) {
       setError(errorMessage(e));
     } finally {
@@ -60,7 +64,7 @@ export default function HotelDashboard() {
         <T v="label" style={{ color: online ? C.ink : "#BDBDB7" }}>Visibility</T>
         <T style={{ fontFamily: F.regular, fontSize: 52, lineHeight: 58, letterSpacing: -1.6, color: online ? C.ink : "#FFFFFF" }}>{online ? "Online" : "Offline"}</T>
         <T style={{ color: online ? C.ink : "#BDBDB7" }}>
-          {online ? `${timeLeft(h.onlineUntil)} left · ${liveRooms} room types showing` : "Guests can't see your rooms right now"}
+          {online ? `${timeLeft(h.onlineUntil, now)} left · ${liveRooms} room types showing` : "Guests can't see your rooms right now"}
         </T>
       </Card>
       <Row style={{ marginTop: 16 }} gap={10}>
@@ -100,13 +104,14 @@ export default function HotelDashboard() {
       <View style={{ marginTop: 18, gap: 10 }}>
         <ErrorNote text={error} />
         <Btn
-          label={online ? "Go offline" : enough ? `Go online · ${option.credits} CC` : "Top up CC to go online"}
-          tone={online || !enough ? "light" : "lime"}
+          label={online ? "Go offline" : `Go online for ${option.label} · ${option.credits} CC`}
+          tone={online ? "light" : "lime"}
           arrow
           loading={busy}
           onPress={act}
         />
-        {online ? <Btn label={`Extend by ${option.label} (${option.credits} CC)`} tone="dark" onPress={() => (enough ? goOnline({ optionId: option.id }).catch((e) => setError(errorMessage(e))) : setTopUpOpen(true))} /> : null}
+        {online ? <Btn label={`Extend by ${option.label} (${option.credits} CC)`} tone="dark" onPress={() => goOnline({ optionId: option.id }).catch((e) => setError(errorMessage(e)))} /> : null}
+        {!online ? <Btn label="Get free CC coins" tone="light" onPress={() => setTopUpOpen(true)} /> : null}
       </View>
 
       <T v="h2" style={{ marginTop: 28, marginBottom: 12 }}>Today's availability</T>
