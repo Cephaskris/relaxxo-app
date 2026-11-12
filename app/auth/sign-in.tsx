@@ -1,47 +1,53 @@
 import React, { useState } from "react";
-import { View } from "react-native";
+import { View, Pressable } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { Screen, T, Field, Btn, BackBtn, ErrorNote } from "@/components/ui";
-import { normalizePhone, prettyPhone, errorMessage } from "@/lib/util";
+import { Screen, T, Field, Btn, BackBtn, ErrorNote, Chip } from "@/components/ui";
+import { normalizePhone, errorMessage } from "@/lib/util";
+import { C } from "@/lib/theme";
 
-// Phone + OTP for every role. The account type is chosen once, after the first login.
+// Phone + Password authentication for Sign In and Sign Up.
 export default function SignIn() {
   const { signIn } = useAuthActions();
-  const { as } = useLocalSearchParams<{ as?: string }>();
-  const [step, setStep] = useState<"phone" | "code">("phone");
+  const { as, mode } = useLocalSearchParams<{ as?: string; mode?: string }>();
+  const [flow, setFlow] = useState<"signIn" | "signUp">(
+    mode === "signUp" || as ? "signUp" : "signIn",
+  );
   const [phoneInput, setPhoneInput] = useState("");
-  const [phone, setPhone] = useState("");
-  const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function sendCode() {
+  async function handleSubmit() {
     setError(null);
     const p = normalizePhone(phoneInput);
-    if (!p) return setError("Enter a valid Nigerian phone number");
-    setBusy(true);
-    try {
-      await signIn("termii", { phone: p });
-      setPhone(p);
-      setCode("123456");
-      setStep("code");
-    } catch (e) {
-      setError(errorMessage(e));
-    } finally {
-      setBusy(false);
+    if (!p) return setError("Enter a valid Nigerian phone number (e.g. 0803 123 4567)");
+    if (!password || password.length < 6) {
+      return setError("Password must be at least 6 characters");
     }
-  }
 
-  async function verify() {
-    setError(null);
-    if (!/^\d{6}$/.test(code)) return setError("Enter the 6-digit code");
     setBusy(true);
     try {
-      await signIn("termii", { phone, code });
+      await signIn("password", { phone: p, password, flow });
       router.replace(as ? `/auth/role?as=${as}` : "/");
-    } catch {
-      setError("That code is wrong or has expired");
+    } catch (e) {
+      const msg = errorMessage(e);
+      if (flow === "signIn") {
+        if (msg.includes("InvalidAccountId") || msg.includes("Invalid credentials")) {
+          setError("No account found with this phone and password. New here? Tap 'Create account' above.");
+        } else if (msg.includes("InvalidSecret")) {
+          setError("Incorrect password. Please try again.");
+        } else {
+          setError("Invalid phone number or password.");
+        }
+      } else {
+        if (msg.includes("already exists")) {
+          setError("An account with this phone number already exists. Tap 'Sign in' above.");
+        } else {
+          setError(msg || "Could not create account. Please try again.");
+        }
+      }
     } finally {
       setBusy(false);
     }
@@ -50,43 +56,90 @@ export default function SignIn() {
   return (
     <Screen padBottom={40}>
       <BackBtn />
-      <View style={{ marginTop: 28, gap: 10 }}>
+      <View style={{ marginTop: 24, gap: 10 }}>
         <T v="label">Relaxxo</T>
-        <T v="display">{step === "phone" ? "Sign in with\nyour phone" : "Enter your\ncode"}</T>
-        <T style={{ color: "#6B6B66" }}>
-          {step === "phone"
-            ? "We'll text you a 6-digit code. New here? This creates your account."
-            : `Testing mode: 123456 is pre-filled for ${prettyPhone(phone)}`}
+        <T v="display">
+          {flow === "signIn" ? "Welcome\nback" : "Create your\naccount"}
+        </T>
+        <T style={{ color: C.muted }}>
+          {flow === "signIn"
+            ? "Sign in with your Nigerian phone number and password."
+            : "Enter your Nigerian phone number and choose a password (min. 6 characters)."}
         </T>
       </View>
-      <View style={{ marginTop: 32, gap: 16 }}>
-        {step === "phone" ? (
+
+      <View style={{ flexDirection: "row", gap: 8, marginTop: 24 }}>
+        <Chip
+          label="Sign in"
+          active={flow === "signIn"}
+          onPress={() => {
+            setFlow("signIn");
+            setError(null);
+          }}
+        />
+        <Chip
+          label="Create account"
+          active={flow === "signUp"}
+          onPress={() => {
+            setFlow("signUp");
+            setError(null);
+          }}
+        />
+      </View>
+
+      <View style={{ marginTop: 24, gap: 16 }}>
+        <Field
+          label="Phone number"
+          placeholder="0803 123 4567"
+          keyboardType="phone-pad"
+          autoComplete="tel"
+          value={phoneInput}
+          onChangeText={setPhoneInput}
+          maxLength={16}
+        />
+
+        <View style={{ gap: 6 }}>
           <Field
-            label="Phone number"
-            placeholder="0803 123 4567"
-            keyboardType="phone-pad"
-            autoComplete="tel"
-            value={phoneInput}
-            onChangeText={setPhoneInput}
-            maxLength={16}
+            label="Password"
+            placeholder={flow === "signUp" ? "At least 6 characters" : "Enter your password"}
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            autoComplete={flow === "signUp" ? "new-password" : "current-password"}
+            value={password}
+            onChangeText={setPassword}
           />
-        ) : (
-          <Field
-            label="6-digit code"
-            placeholder="123456"
-            keyboardType="number-pad"
-            autoComplete="one-time-code"
-            textContentType="oneTimeCode"
-            value={code}
-            onChangeText={(t) => setCode(t.replace(/\D/g, "").slice(0, 6))}
-            maxLength={6}
-          />
-        )}
+          <Pressable
+            onPress={() => setShowPassword((v) => !v)}
+            style={{ alignSelf: "flex-end", paddingVertical: 4 }}
+          >
+            <T v="small" style={{ color: C.muted }}>
+              {showPassword ? "Hide password" : "Show password"}
+            </T>
+          </Pressable>
+        </View>
+
         <ErrorNote text={error} />
-        <Btn label={step === "phone" ? "Send code" : "Continue"} arrow loading={busy} onPress={step === "phone" ? sendCode : verify} />
-        {step === "code" ? (
-          <Btn label="Use a different number" tone="light" onPress={() => { setStep("phone"); setCode(""); }} />
-        ) : null}
+
+        <Btn
+          label={flow === "signIn" ? "Sign in" : "Create account"}
+          arrow
+          loading={busy}
+          onPress={handleSubmit}
+        />
+
+        <Pressable
+          onPress={() => {
+            setFlow(flow === "signIn" ? "signUp" : "signIn");
+            setError(null);
+          }}
+          style={{ alignItems: "center", paddingVertical: 8 }}
+        >
+          <T v="small" style={{ color: C.muted }}>
+            {flow === "signIn"
+              ? "Don't have an account? Create one"
+              : "Already have an account? Sign in"}
+          </T>
+        </Pressable>
       </View>
     </Screen>
   );

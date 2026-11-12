@@ -1,6 +1,8 @@
 import { convexAuth } from "@convex-dev/auth/server";
+import { Password } from "@convex-dev/auth/providers/Password";
 import { Phone } from "@convex-dev/auth/providers/Phone";
 import type { MutationCtx } from "./_generated/server";
+import type { DataModel } from "./_generated/dataModel";
 
 // 6-digit numeric one-time code from a cryptographically secure source.
 function generateCode(): string {
@@ -16,6 +18,25 @@ function generateCode(): string {
 function isValidNigerianPhone(phone: string) {
   return /^\+234[789][01]\d{8}$/.test(phone);
 }
+
+const PhonePassword = Password<DataModel>({
+  id: "password",
+  profile(params) {
+    const phone = String(params.phone ?? params.email ?? "").trim();
+    if (!isValidNigerianPhone(phone)) {
+      throw new Error("Enter a valid Nigerian phone number");
+    }
+    return {
+      email: phone,
+      phone,
+    };
+  },
+  validatePasswordRequirements(password: string) {
+    if (!password || password.length < 6) {
+      throw new Error("Password must be at least 6 characters");
+    }
+  },
+});
 
 const TermiiOTP = Phone({
   id: "termii",
@@ -57,12 +78,13 @@ const TermiiOTP = Phone({
 });
 
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
-  providers: [TermiiOTP],
+  providers: [PhonePassword, TermiiOTP],
   callbacks: {
     // New accounts start with no role; the app asks for it once (users.completeSignup).
     async createOrUpdateUser(ctx: MutationCtx, args) {
       if (args.existingUserId) return args.existingUserId;
-      const phone = (args.profile as { phone?: string }).phone;
+      const profile = args.profile as { phone?: string; email?: string };
+      const phone = profile.phone ?? profile.email;
       if (phone) {
         const existing = await ctx.db
           .query("users")
