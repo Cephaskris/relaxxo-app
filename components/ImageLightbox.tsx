@@ -1,12 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Image, Modal, Pressable, View } from "react-native";
+import { Image, Modal, Platform, Pressable, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronLeft, ChevronRight, X } from "lucide-react-native";
 import { T, Row } from "@/components/ui";
 import { F, ICON } from "@/lib/theme";
 
+function getRelaxxoDomain() {
+  if (Platform.OS === "web" && typeof window !== "undefined" && window.location?.hostname) {
+    const host = window.location.hostname;
+    if (host && host !== "localhost" && host !== "127.0.0.1") return host;
+  }
+  return "relaxxo.app";
+}
+
 /**
- * Full-screen image viewer modal.
+ * Full-screen image viewer modal with a centered Relaxxo domain watermark.
  * Pass `images` and `initialIndex` (or `null` when closed).
  */
 export function ImageLightbox({
@@ -29,6 +37,7 @@ export function ImageLightbox({
   const visible = initialIndex !== null && images.length > 0;
   const current = images[index] ?? images[0];
   const hasMultiple = images.length > 1;
+  const domain = getRelaxxoDomain();
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -60,11 +69,41 @@ export function ImageLightbox({
             style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 12 }}
           >
             {current ? (
-              <Image
-                source={{ uri: current }}
-                resizeMode="contain"
-                style={{ width: "100%", height: "100%", maxWidth: 900 }}
-              />
+              <View style={{ width: "100%", height: "100%", maxWidth: 900, alignItems: "center", justifyContent: "center" }}>
+                <Image
+                  source={{ uri: current }}
+                  resizeMode="contain"
+                  style={{ width: "100%", height: "100%" }}
+                />
+                <View
+                  pointerEvents="none"
+                  style={{
+                    position: "absolute",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transform: [{ rotate: "-22deg" }],
+                    paddingHorizontal: 18,
+                    paddingVertical: 8,
+                    borderRadius: 12,
+                    backgroundColor: "rgba(0, 0, 0, 0.22)",
+                  }}
+                >
+                  <T
+                    style={{
+                      color: "rgba(255, 255, 255, 0.65)",
+                      fontFamily: F.semibold,
+                      fontSize: 22,
+                      letterSpacing: 0.6,
+                      textAlign: "center",
+                      textShadowColor: "rgba(0, 0, 0, 0.65)",
+                      textShadowOffset: { width: 0, height: 1 },
+                      textShadowRadius: 4,
+                    }}
+                  >
+                    {domain}
+                  </T>
+                </View>
+              </View>
             ) : null}
           </Pressable>
 
@@ -107,3 +146,4 @@ export function ImageLightbox({
     </Modal>
   );
 }
+
