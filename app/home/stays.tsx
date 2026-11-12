@@ -1,5 +1,5 @@
 import React from "react";
-import { Image, Pressable, View } from "react-native";
+import { Image, Pressable, ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { useQuery } from "convex/react";
 import { ArrowUpRight } from "lucide-react-native";
@@ -8,33 +8,71 @@ import { Screen, T, Row, Chip, Placeholder, Loading } from "@/components/ui";
 import { useLoc } from "@/components/LocationProvider";
 import { C, F, ICON } from "@/lib/theme";
 import { naira } from "@/lib/util";
-import { CITIES } from "@/lib/areas";
+import { CITIES, CITY_NAMES } from "@/lib/areas";
 
 export default function Stays() {
   const loc = useLoc();
+  const isWholeState = loc.source === "all" || (loc.source === "area" && loc.selectedAreas.length === 0);
   const res = useQuery(api.hotels.listNearby, {
     city: loc.city,
     lat: loc.lat,
     lng: loc.lng,
-    area: loc.source === "area" ? loc.label : undefined,
-    allAreas: loc.source === "all",
+    areas: loc.selectedAreas.length > 0 ? loc.selectedAreas : undefined,
+    allAreas: isWholeState,
   });
-  const areas = CITIES[loc.city];
+  const areas = CITIES[loc.city] ?? CITIES.Lagos;
   if (res === undefined) return <Loading />;
+
+  const headerTitle =
+    loc.selectedAreas.length === 0
+      ? `All of ${loc.city}`
+      : loc.selectedAreas.length === 1
+        ? `${loc.selectedAreas[0]}, ${loc.city}`
+        : `${loc.selectedAreas.length} cities in ${loc.city}`;
+
   return (
     <Screen>
-      <T v="label">Stays with free rooms · {loc.city}</T>
-      <T v="display" style={{ marginTop: 4 }}>{loc.label}</T>
-      <Row style={{ flexWrap: "wrap", marginTop: 14 }}>
+      <T v="label">Stays with free rooms · Nigeria</T>
+      <T v="display" style={{ marginTop: 4 }}>{headerTitle}</T>
+
+      <T v="small" style={{ marginTop: 14, color: C.muted }}>State (36 States + Abuja)</T>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: 8, paddingVertical: 6 }}
+      >
+        {CITY_NAMES.map((stateName) => (
+          <Chip
+            key={stateName}
+            label={stateName}
+            active={loc.city === stateName}
+            onPress={() => loc.setCity(stateName)}
+          />
+        ))}
+      </ScrollView>
+
+      <T v="small" style={{ marginTop: 10, color: C.muted }}>
+        Streamline by city in {loc.city}
+      </T>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: 8, paddingVertical: 6 }}
+      >
         <Chip
-          label={`All areas in ${loc.city}`}
-          active={loc.source === "all"}
+          label={`Whole of ${loc.city}`}
+          active={loc.selectedAreas.length === 0 && loc.source !== "gps"}
           onPress={() => loc.setAllAreas()}
         />
-        {areas.slice(0, 6).map((a, i) => (
-          <Chip key={a.name} label={a.name} active={loc.source === "area" && loc.areaIndex === i} onPress={() => loc.setArea(i)} />
+        {areas.map((a) => (
+          <Chip
+            key={a.name}
+            label={a.name}
+            active={loc.selectedAreas.includes(a.name)}
+            onPress={() => loc.toggleCityArea(a.name)}
+          />
         ))}
-      </Row>
+      </ScrollView>
 
       <View style={{ gap: 14, marginTop: 20 }}>
         {!res.open ? (

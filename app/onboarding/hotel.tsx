@@ -69,7 +69,7 @@ export default function HotelOnboarding() {
     if (!cover[0]) return setError("Add a cover photo");
     setBusy("save");
     try {
-      await saveHotel({ name, address: address || loc.address || "", area: loc.area, lat: loc.lat, lng: loc.lng, phone: p, amenities, coverId: cover[0].id });
+      await saveHotel({ name, address: address || loc.address || loc.area, area: loc.area, lat: loc.lat, lng: loc.lng, phone: p, amenities, coverId: cover[0].id });
       setSaved(true);
     } catch (e) {
       setError(errorMessage(e));
@@ -125,8 +125,8 @@ export default function HotelOnboarding() {
         <PhotoGrid photos={cover} onChange={setCover} min={1} max={1} />
         <Field label="Hotel name" value={name} onChangeText={setName} maxLength={60} />
         <Field label="Front-desk phone (guests will call this)" keyboardType="phone-pad" value={phone} onChangeText={setPhone} maxLength={16} />
-        <T v="label">City</T>
-        <Row>
+        <T v="label">State (36 States + Abuja)</T>
+        <Row style={{ flexWrap: "wrap" }}>
           {CITY_NAMES.map((c) => (
             <Chip
               key={c}
@@ -139,7 +139,7 @@ export default function HotelOnboarding() {
             />
           ))}
         </Row>
-        <LocationPicker city={me.city ?? "Lagos"} value={loc} onChange={(v) => { setLoc(v); if (v.address) setAddress(v.address); }} exactRequired />
+        <LocationPicker city={me.city ?? "Lagos"} value={loc} onChange={(v) => { setLoc(v); if (v.address) setAddress(v.address); }} />
         <Field label="Full address" value={address} onChangeText={setAddress} maxLength={160} />
         <T v="label">Amenities</T>
         <Row style={{ flexWrap: "wrap" }}>

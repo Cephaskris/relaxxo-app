@@ -74,8 +74,8 @@ export const saveHotel = mutation({
     if (!user.city) throw new ConvexError("Set your city first");
     const settings = await getSettings(ctx);
     const name = cleanText(a.name, "Hotel name", 2, 60);
-    const address = cleanText(a.address, "Address", 8, 160);
-    const area = cleanText(a.area, "Area", 2, 60);
+    const address = cleanText(a.address, "Address", 2, 160);
+    const area = cleanText(a.area, "Area", 2, 300);
     assertAllowedText(`${name} ${address}`, settings.blockedWords);
     validLatLng(a.lat, a.lng);
     if (!/^\+234[789][01]\d{8}$/.test(a.phone)) throw new ConvexError("Enter a valid front-desk number");
@@ -183,6 +183,7 @@ export const listNearby = query({
     lat: v.number(),
     lng: v.number(),
     area: v.optional(v.string()),
+    areas: v.optional(v.array(v.string())),
     allAreas: v.optional(v.boolean()),
     searchKm: v.optional(v.number()),
   },
@@ -197,13 +198,32 @@ export const listNearby = query({
       .query("hotels")
       .withIndex("by_city_verification", (q) => q.eq("city", a.city).eq("verification", "approved"))
       .collect();
+
+    const selectedAreas = [...(a.areas ?? []), ...(a.area ? [a.area] : [])]
+      .map((s) => s.trim().toLowerCase())
+      .filter((s) => s && !s.startsWith("all of ") && !s.startsWith("whole of ") && s !== "all areas");
+
     const out = [];
     for (const h of hotels) {
       if (h.onlineUntil <= now) continue;
       const km = distanceKm(a.lat, a.lng, h.lat, h.lng);
-      const isCityWide = h.area.startsWith("All of ") || h.area === "All areas";
-      const sameArea = !!a.area && h.area.trim().toLowerCase() === a.area.trim().toLowerCase();
-      if (!a.allAreas && !isCityWide && !sameArea && km > searchKm) continue;
+      const isCityWide =
+        h.area.startsWith("All of ") ||
+        h.area.startsWith("Whole of ") ||
+        h.area === "All areas";
+      const hotelAreas = h.area
+        .split(",")
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean);
+      const sameArea =
+        selectedAreas.length > 0 &&
+        (isCityWide || hotelAreas.some((ha) => selectedAreas.includes(ha)));
+
+      if (selectedAreas.length > 0) {
+        if (!sameArea) continue;
+      } else if (!a.allAreas && !isCityWide && km > searchKm) {
+        continue;
+      }
       const rooms = (
         await ctx.db
           .query("rooms")

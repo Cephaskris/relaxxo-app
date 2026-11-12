@@ -22,6 +22,46 @@ export type Settings = {
   defaultSearchKm: number;
 };
 
+export const ALL_STATES = [
+  "Lagos",
+  "Abuja",
+  "Oyo",
+  "Rivers",
+  "Sokoto",
+  "Kano",
+  "Delta",
+  "Edo",
+  "Enugu",
+  "Anambra",
+  "Ogun",
+  "Kaduna",
+  "Akwa Ibom",
+  "Imo",
+  "Kwara",
+  "Plateau",
+  "Cross River",
+  "Abia",
+  "Ondo",
+  "Osun",
+  "Ekiti",
+  "Benue",
+  "Kogi",
+  "Nasarawa",
+  "Niger",
+  "Bauchi",
+  "Gombe",
+  "Adamawa",
+  "Taraba",
+  "Borno",
+  "Yobe",
+  "Jigawa",
+  "Katsina",
+  "Kebbi",
+  "Zamfara",
+  "Bayelsa",
+  "Ebonyi",
+];
+
 export const DEFAULT_SETTINGS: Settings = {
   packs: [
     { id: "p5", credits: 5, priceNaira: 2500 },
@@ -37,10 +77,7 @@ export const DEFAULT_SETTINGS: Settings = {
     { id: "3d", label: "3 days", hours: 72, credits: 10 },
   ],
   welcomeBonusCredits: 2,
-  cities: [
-    { name: "Lagos", open: true },
-    { name: "Abuja", open: true },
-  ],
+  cities: ALL_STATES.map((name) => ({ name, open: true })),
   categories: [
     "Relaxation",
     "Deep tissue",
@@ -62,7 +99,13 @@ export async function getSettings(ctx: QueryCtx): Promise<Settings> {
     .query("settings")
     .withIndex("by_key", (q) => q.eq("key", "main"))
     .first();
-  return { ...DEFAULT_SETTINGS, ...(row?.value ?? {}) } as Settings;
+  const val = (row?.value ?? {}) as Partial<Settings>;
+  const existingCities = new Map((val.cities ?? []).map((c) => [c.name, c.open]));
+  const cities = ALL_STATES.map((name) => ({
+    name,
+    open: existingCities.has(name) ? existingCities.get(name)! : true,
+  }));
+  return { ...DEFAULT_SETTINGS, ...val, cities } as Settings;
 }
 
 // ---------- Auth guards ----------

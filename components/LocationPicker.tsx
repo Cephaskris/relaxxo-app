@@ -9,7 +9,7 @@ import { errorMessage } from "@/lib/util";
 
 export type PickedLocation = { area: string; lat: number; lng: number; address?: string };
 
-// Where a therapist works / where a hotel is: choose an area (or all areas in the city), then set the pin by GPS or address search.
+// Where a therapist works / where a hotel is: choose the whole state or one/multiple cities in that state, plus optional GPS/address pin.
 export function LocationPicker({
   city,
   value,
@@ -26,7 +26,14 @@ export function LocationPicker({
   const [error, setError] = useState<string | null>(null);
   const areas = CITIES[city] ?? [];
   const allAreasLabel = `All of ${city}`;
-  const isAllAreas = value?.area === allAreasLabel;
+  const isAllAreas = value?.area === allAreasLabel || value?.area === `Whole of ${city}`;
+
+  const selectedCities = isAllAreas
+    ? areas.map((a) => a.name)
+    : (value?.area ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
 
   function selectAllAreas() {
     const center = areas[0] ?? { lat: 6.5244, lng: 3.3792 };
@@ -47,6 +54,52 @@ export function LocationPicker({
     }
   }
 
+  function toggleCity(areaObj: { name: string; lat: number; lng: number }) {
+    if (isAllAreas) {
+      // Switching from whole state to a single specific city
+      onChange({
+        area: areaObj.name,
+        lat: exactRequired && value ? value.lat : areaObj.lat,
+        lng: exactRequired && value ? value.lng : areaObj.lng,
+        address: value?.address,
+      });
+      return;
+    }
+
+    const exists = selectedCities.includes(areaObj.name);
+    const next = exists
+      ? selectedCities.filter((n) => n !== areaObj.name)
+      : [...selectedCities, areaObj.name];
+
+    if (next.length === 0) {
+      onChange({
+        area: areaObj.name,
+        lat: exactRequired && value ? value.lat : areaObj.lat,
+        lng: exactRequired && value ? value.lng : areaObj.lng,
+        address: value?.address,
+      });
+      return;
+    }
+
+    if (next.length === areas.length && areas.length > 1) {
+      onChange({
+        area: allAreasLabel,
+        lat: value?.lat ?? areaObj.lat,
+        lng: value?.lng ?? areaObj.lng,
+        address: value?.address,
+      });
+      return;
+    }
+
+    const firstMatch = areas.find((a) => a.name === next[0]) ?? areaObj;
+    onChange({
+      area: next.join(", "),
+      lat: exactRequired && value ? value.lat : firstMatch.lat,
+      lng: exactRequired && value ? value.lng : firstMatch.lng,
+      address: value?.address,
+    });
+  }
+
   async function gps() {
     setError(null);
     setBusy(true);
@@ -64,22 +117,27 @@ export function LocationPicker({
 
   return (
     <View style={{ gap: 10 }}>
-      <Row style={{ justifyContent: "space-between", alignItems: "center" }}>
-        <T v="label">Area</T>
+      <Row style={{ justifyContent: "space-between", alignItems: "center", flexWrap: "wrap" }} gap={8}>
+        <View style={{ flex: 1 }}>
+          <T v="label">Cities in {city} State</T>
+          <T v="small" style={{ color: C.muted }}>
+            Choose the whole of {city} or tap multiple cities you cover
+          </T>
+        </View>
         <Pressable
           onPress={selectAllAreas}
           accessibilityRole="button"
           style={{
-            height: 36,
+            height: 38,
             paddingHorizontal: 14,
-            borderRadius: 18,
+            borderRadius: 19,
             backgroundColor: isAllAreas ? C.lime : C.ink,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
           <T style={{ fontFamily: F.medium, fontSize: 13, color: isAllAreas ? C.ink : "#FFFFFF" }}>
-            {isAllAreas ? `✓ All areas in ${city} selected` : `Select all areas in ${city}`}
+            {isAllAreas ? `✓ Whole of ${city} selected` : `Available in whole of ${city}`}
           </T>
         </Pressable>
       </Row>
@@ -88,8 +146,8 @@ export function LocationPicker({
           <Chip
             key={a.name}
             label={a.name}
-            active={isAllAreas || value?.area === a.name}
-            onPress={() => onChange(exactRequired && value ? { ...value, area: a.name } : { area: a.name, lat: a.lat, lng: a.lng })}
+            active={isAllAreas || selectedCities.includes(a.name)}
+            onPress={() => toggleCity(a)}
           />
         ))}
       </Row>
@@ -101,7 +159,9 @@ export function LocationPicker({
       {value ? (
         <Card style={{ padding: 14 }}>
           <T v="small">
-            {isAllAreas ? `Covering all areas in ${city}` : `Pin set in ${value.area}`}
+            {isAllAreas
+              ? `Available across the whole of ${city}`
+              : `Available in: ${value.area}`}
             {value.address ? ` · ${value.address}` : ""}
           </T>
         </Card>

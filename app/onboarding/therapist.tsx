@@ -170,8 +170,8 @@ export default function TherapistOnboarding() {
             </Row>
           </>
         ) : null}
-        <T v="label">City</T>
-        <Row>
+        <T v="label">State (36 States + Abuja)</T>
+        <Row style={{ flexWrap: "wrap" }}>
           {CITY_NAMES.map((c) => (
             <Chip
               key={c}

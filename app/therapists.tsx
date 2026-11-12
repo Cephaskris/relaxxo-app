@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight, Map as MapIcon, SlidersHorizontal, Star, Bad
 import { api } from "@/convex/_generated/api";
 import { T, Row, BackBtn, CircleBtn, Btn, Chip, Pill, Placeholder, Loading } from "@/components/ui";
 import { useLoc } from "@/components/LocationProvider";
+import { CITIES } from "@/lib/areas";
 import { C, F, ICON } from "@/lib/theme";
 import { naira, minutesLabel } from "@/lib/util";
 
@@ -23,12 +24,15 @@ export default function TherapistsInArea() {
   const [maxPrice, setMaxPrice] = useState<number | undefined>();
   const [i, setI] = useState(0);
 
+  const stateAreas = CITIES[loc.city] ?? CITIES.Lagos;
+  const isWholeState = loc.source === "all" || (loc.source === "area" && loc.selectedAreas.length === 0);
+
   const res = useQuery(api.therapists.listNearby, {
     city: loc.city,
     lat: loc.lat,
     lng: loc.lng,
-    area: loc.source === "area" ? loc.label : undefined,
-    allAreas: loc.source === "all",
+    areas: loc.selectedAreas.length > 0 ? loc.selectedAreas : undefined,
+    allAreas: isWholeState,
     category,
     gender,
     workType,
@@ -55,12 +59,19 @@ export default function TherapistsInArea() {
 
   if (res === undefined) return <Loading />;
 
+  const headerTitle =
+    loc.selectedAreas.length === 0
+      ? loc.city
+      : loc.selectedAreas.length === 1
+        ? loc.selectedAreas[0]
+        : `${loc.selectedAreas.length} cities in ${loc.city}`;
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={["top", "bottom"]}>
       <View style={{ flex: 1, width: "100%", maxWidth: 560, alignSelf: "center" }}>
         <Row style={{ justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 12 }}>
           <BackBtn />
-          <T v="label" style={{ fontSize: 15 }}>Online now · {loc.city}</T>
+          <T v="label" style={{ fontSize: 15 }}>Online now · {loc.city} State</T>
           <CircleBtn
             label="Filters"
             tone={showFilters ? "lime" : "light"}
@@ -69,15 +80,56 @@ export default function TherapistsInArea() {
           />
         </Row>
 
-        <T style={{ fontFamily: F.regular, fontSize: 60, lineHeight: 64, letterSpacing: -2, textAlign: "center", marginTop: 14 }} numberOfLines={1} adjustsFontSizeToFit>
-          {loc.label}
+        <T
+          style={{
+            fontFamily: F.regular,
+            fontSize: 48,
+            lineHeight: 54,
+            letterSpacing: -1.5,
+            textAlign: "center",
+            marginTop: 10,
+            paddingHorizontal: 16,
+          }}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+        >
+          {headerTitle}
         </T>
         <T v="label" style={{ textAlign: "center", marginTop: 2 }}>
-          {res.open ? `${list.length} verified therapists near you` : "Coming soon"}
+          {res.open ? `${list.length} verified therapists available` : "Coming soon"}
         </T>
 
+        {/* Streamline by cities in this State */}
+        <View style={{ marginTop: 10 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingHorizontal: 24 }}
+          >
+            <Chip
+              label={`Whole of ${loc.city}`}
+              active={loc.selectedAreas.length === 0 && loc.source !== "gps"}
+              onPress={() => {
+                loc.setAllAreas();
+                setI(0);
+              }}
+            />
+            {stateAreas.map((a) => (
+              <Chip
+                key={a.name}
+                label={a.name}
+                active={loc.selectedAreas.includes(a.name)}
+                onPress={() => {
+                  loc.toggleCityArea(a.name);
+                  setI(0);
+                }}
+              />
+            ))}
+          </ScrollView>
+        </View>
+
         {showFilters ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 24, paddingTop: 12 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 24, paddingTop: 10 }}>
             <Chip label="Female" active={gender === "female"} onPress={() => setGender(gender === "female" ? undefined : "female")} />
             <Chip label="Male" active={gender === "male"} onPress={() => setGender(gender === "male" ? undefined : "male")} />
             <Chip label="Home visit" active={workType === "home"} onPress={() => setWorkType(workType === "home" ? undefined : "home")} />
@@ -100,7 +152,11 @@ export default function TherapistsInArea() {
           ) : !t ? (
             <View style={{ alignItems: "center", gap: 12 }}>
               <T v="h2" style={{ textAlign: "center" }}>No one online here right now</T>
-              <T v="label" style={{ textAlign: "center" }}>Try another area, clear filters, or check back soon.</T>
+              <T v="label" style={{ textAlign: "center" }}>
+                {loc.selectedAreas.length > 0
+                  ? `Tap "Whole of ${loc.city}" above to view everyone across ${loc.city}.`
+                  : "Try another state, clear filters, or check back soon."}
+              </T>
             </View>
           ) : (
             <View {...swipe.panHandlers}>
@@ -130,7 +186,7 @@ export default function TherapistsInArea() {
                   <Row style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
                     <View style={{ flex: 1 }}>
                       <T v="h2">{t.displayName}</T>
-                      <T v="small" style={{ fontSize: 13 }}>
+                      <T v="small" style={{ fontSize: 13 }} numberOfLines={2}>
                         ~{t.distanceKm} km · {t.area} · {t.workType === "both" ? "Home visit + studio" : t.workType === "home" ? "Home visit" : "Studio"}
                       </T>
                     </View>

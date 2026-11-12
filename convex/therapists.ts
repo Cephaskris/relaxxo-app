@@ -94,7 +94,7 @@ export const saveProfile = mutation({
     const settings = await getSettings(ctx);
     const displayName = cleanText(a.displayName, "Display name", 2, 40);
     const bio = cleanText(a.bio, "Bio", 10, 200);
-    const area = cleanText(a.area, "Area", 2, 60);
+    const area = cleanText(a.area, "Area", 2, 300);
     assertAllowedText(`${displayName} ${bio} ${area}`, settings.blockedWords);
     validLatLng(a.lat, a.lng);
     if (![5, 10, 20].includes(a.radiusKm)) throw new ConvexError("Choose 5, 10 or 20 km");
@@ -274,6 +274,7 @@ export const listNearby = query({
     lat: v.number(),
     lng: v.number(),
     area: v.optional(v.string()),
+    areas: v.optional(v.array(v.string())),
     allAreas: v.optional(v.boolean()),
     searchKm: v.optional(v.number()),
     category: v.optional(v.string()),
@@ -295,15 +296,31 @@ export const listNearby = query({
       .withIndex("by_city_verification", (q) => q.eq("city", a.city).eq("verification", "approved"))
       .collect();
 
+    const selectedAreas = [...(a.areas ?? []), ...(a.area ? [a.area] : [])]
+      .map((s) => s.trim().toLowerCase())
+      .filter((s) => s && !s.startsWith("all of ") && !s.startsWith("whole of ") && s !== "all areas");
+
     const out = [];
     for (const t of candidates) {
       if (t.onlineUntil <= now) continue;
       if (a.gender && t.gender !== a.gender) continue;
       if (a.workType && t.workType !== a.workType && t.workType !== "both") continue;
       const km = distanceKm(a.lat, a.lng, t.lat, t.lng);
-      const isCityWide = t.area.startsWith("All of ") || t.area === "All areas";
-      const sameArea = !!a.area && t.area.trim().toLowerCase() === a.area.trim().toLowerCase();
-      if (!a.allAreas && !isCityWide && !sameArea) {
+      const isCityWide =
+        t.area.startsWith("All of ") ||
+        t.area.startsWith("Whole of ") ||
+        t.area === "All areas";
+      const therapistAreas = t.area
+        .split(",")
+        .map((s) => s.trim().toLowerCase())
+        .filter(Boolean);
+      const sameArea =
+        selectedAreas.length > 0 &&
+        (isCityWide || therapistAreas.some((ta) => selectedAreas.includes(ta)));
+
+      if (selectedAreas.length > 0) {
+        if (!sameArea) continue;
+      } else if (!a.allAreas && !isCityWide) {
         const homeOk = t.workType !== "studio" && km <= t.radiusKm;
         const studioOk = t.workType !== "home" && km <= searchKm;
         if (!homeOk && !studioOk) continue;

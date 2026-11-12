@@ -22,7 +22,7 @@ import {
 import { api } from "@/convex/_generated/api";
 import { Btn, Card, Chip, Row, T } from "@/components/ui";
 import { useLoc } from "@/components/LocationProvider";
-import { CITIES } from "@/lib/areas";
+import { CITIES, CITY_NAMES } from "@/lib/areas";
 import { C, F, ICON, R } from "@/lib/theme";
 import { naira } from "@/lib/util";
 
@@ -61,7 +61,7 @@ export function LandingPage() {
   const me = useQuery(api.users.me, isAuthenticated ? {} : "skip");
   const settings = useQuery(api.settings.publicSettings);
 
-  const [selectedCity, setSelectedCity] = useState<"Lagos" | "Abuja">("Lagos");
+  const [selectedCity, setSelectedCity] = useState<string>("Lagos");
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   const areas = CITIES[selectedCity] ?? CITIES.Lagos;
@@ -71,13 +71,13 @@ export function LandingPage() {
     { id: "p30", credits: 30, priceNaira: 10000 },
   ];
 
-  function jumpToArea(city: "Lagos" | "Abuja", index: number) {
+  function jumpToArea(city: string, index: number) {
     loc.setCity(city);
     setTimeout(() => loc.setArea(index), 0);
     router.push("/home");
   }
 
-  function jumpToAllAreas(city: "Lagos" | "Abuja") {
+  function jumpToAllAreas(city: string) {
     loc.setCity(city);
     setTimeout(() => loc.setAllAreas(), 0);
     router.push("/home");
@@ -384,16 +384,24 @@ export function LandingPage() {
       <View style={{ width: "100%", maxWidth: 1200, alignSelf: "center", paddingHorizontal: isWide ? 32 : 20, marginTop: isWide ? 64 : 40, gap: isWide ? 64 : 44 }}>
         {/* ---------- 2. NEIGHBORHOOD EXPLORER ---------- */}
         <View style={{ gap: 18 }}>
-          <Row style={{ justifyContent: "space-between", flexWrap: "wrap" }} gap={12}>
-            <View style={{ gap: 4 }}>
-              <T v="label" style={{ textTransform: "uppercase", letterSpacing: 1 }}>Neighborhoods</T>
-              <T v="title">Explore by area</T>
-            </View>
-            <Row gap={8}>
-              <Chip label="Lagos" active={selectedCity === "Lagos"} onPress={() => setSelectedCity("Lagos")} />
-              <Chip label="Abuja" active={selectedCity === "Abuja"} onPress={() => setSelectedCity("Abuja")} />
-            </Row>
-          </Row>
+          <View style={{ gap: 4 }}>
+            <T v="label" style={{ textTransform: "uppercase", letterSpacing: 1 }}>36 States + Abuja</T>
+            <T v="title">Explore by state & city</T>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingVertical: 4 }}
+          >
+            {CITY_NAMES.map((stateName) => (
+              <Chip
+                key={stateName}
+                label={stateName}
+                active={selectedCity === stateName}
+                onPress={() => setSelectedCity(stateName)}
+              />
+            ))}
+          </ScrollView>
 
           <Row style={{ flexWrap: "wrap" }} gap={10}>
             <Pressable
@@ -409,7 +417,7 @@ export function LandingPage() {
               }}
             >
               <MapPin size={16} strokeWidth={ICON.stroke} color={C.ink} />
-              <T style={{ fontFamily: F.medium, fontSize: 15 }}>All areas in {selectedCity}</T>
+              <T style={{ fontFamily: F.medium, fontSize: 15 }}>Whole of {selectedCity}</T>
               <ArrowUpRight size={15} strokeWidth={ICON.stroke} color={C.ink} />
             </Pressable>
             {areas.map((a, idx) => (

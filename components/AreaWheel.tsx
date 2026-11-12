@@ -9,11 +9,13 @@ export function AreaWheel({
   names,
   selected,
   onChange,
+  onSelectActive,
   height = 360,
 }: {
   names: string[];
   selected: number;
   onChange: (i: number) => void;
+  onSelectActive?: () => void;
   height?: number;
 }) {
   const cx = -150;
@@ -112,7 +114,10 @@ export function AreaWheel({
         return (
           <Pressable
             key={name}
-            onPress={() => onChange(i)}
+            onPress={() => {
+              if (isSel && onSelectActive) onSelectActive();
+              else onChange(i);
+            }}
             accessibilityRole="button"
             accessibilityLabel={`Choose ${name}`}
             accessibilityState={{ selected: isSel }}

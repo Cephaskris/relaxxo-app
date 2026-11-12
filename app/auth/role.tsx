@@ -91,8 +91,8 @@ export default function ChooseRole() {
           </View>
         ) : null}
         <View style={{ gap: 6 }}>
-          <T v="label">City</T>
-          <Row>
+          <T v="label">State (36 States + Abuja)</T>
+          <Row style={{ flexWrap: "wrap" }}>
             {CITY_NAMES.map((c) => (
               <Chip key={c} label={c} active={c === city} onPress={() => setCity(c)} />
             ))}

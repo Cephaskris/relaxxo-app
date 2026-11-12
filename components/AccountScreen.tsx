@@ -51,8 +51,8 @@ export function AccountScreen({ extra }: { extra?: React.ReactNode }) {
       <Card style={{ marginTop: 20, gap: 14 }}>
         <Field label="Name" value={name ?? me.name} onChangeText={setName} maxLength={60} />
         <View style={{ gap: 6 }}>
-          <T v="label">City</T>
-          <Row>
+          <T v="label">State (36 States + Abuja)</T>
+          <Row style={{ flexWrap: "wrap" }}>
             {CITY_NAMES.map((c) => (
               <Chip key={c} label={c} active={me.city === c} onPress={() => updateMe({ city: c }).catch((e) => setError(errorMessage(e)))} />
             ))}

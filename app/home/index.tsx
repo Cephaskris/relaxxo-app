@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { useConvexAuth, useQuery } from "convex/react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MapPin, ChevronDown, Search, LocateFixed } from "lucide-react-native";
+import { MapPin, Search, LocateFixed } from "lucide-react-native";
 import { api } from "@/convex/_generated/api";
 import { T, Chip, Row, Btn, CircleBtn, ErrorNote } from "@/components/ui";
 import { AreaWheel } from "@/components/AreaWheel";
 import { PlaceSearch } from "@/components/PlaceSearch";
 import { useLoc } from "@/components/LocationProvider";
-import { CITIES } from "@/lib/areas";
+import { CITIES, CITY_NAMES } from "@/lib/areas";
 import { C, F, ICON } from "@/lib/theme";
 import { errorMessage } from "@/lib/util";
 
@@ -19,33 +19,51 @@ export default function ClientHome() {
   const [mode, setMode] = useState<"therapists" | "stays">("therapists");
   const [searchOpen, setSearchOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const areas = CITIES[loc.city] ?? CITIES.Lagos;
+  const stateAreas = CITIES[loc.city] ?? CITIES.Lagos;
+
+  const isWholeState = loc.source === "all" || (loc.source === "area" && loc.selectedAreas.length === 0);
 
   const therapists = useQuery(api.therapists.listNearby, {
     city: loc.city,
     lat: loc.lat,
     lng: loc.lng,
-    area: loc.source === "area" ? loc.label : undefined,
-    allAreas: loc.source === "all",
+    areas: loc.selectedAreas.length > 0 ? loc.selectedAreas : undefined,
+    allAreas: isWholeState,
   });
   const hotels = useQuery(api.hotels.listNearby, {
     city: loc.city,
     lat: loc.lat,
     lng: loc.lng,
-    area: loc.source === "area" ? loc.label : undefined,
-    allAreas: loc.source === "all",
+    areas: loc.selectedAreas.length > 0 ? loc.selectedAreas : undefined,
+    allAreas: isWholeState,
   });
 
   let cta = "Loading…";
   const data = mode === "therapists" ? therapists : hotels;
+  const scopeLabel =
+    loc.source === "gps"
+      ? "Near you"
+      : loc.selectedAreas.length === 0
+        ? `All of ${loc.city}`
+        : loc.selectedAreas.length === 1
+          ? `${loc.selectedAreas[0]}, ${loc.city}`
+          : `${loc.selectedAreas.length} cities in ${loc.city}`;
+
   if (data && !data.open) cta = `Coming soon to ${loc.city}`;
-  else if (mode === "therapists" && therapists?.open) cta = `${therapists.therapists.length} therapists online · ${loc.label}`;
-  else if (mode === "stays" && hotels?.open) cta = `${hotels.hotels.length} stays with rooms · ${loc.label}`;
+  else if (mode === "therapists" && therapists?.open)
+    cta = `${therapists.therapists.length} therapists online · ${scopeLabel}`;
+  else if (mode === "stays" && hotels?.open)
+    cta = `${hotels.hotels.length} stays with rooms · ${scopeLabel}`;
+
+  function openResults() {
+    if (mode === "therapists") router.push("/therapists");
+    else router.push("/home/stays");
+  }
 
   async function nearMe() {
     setError(null);
     if (loc.source === "gps") {
-      loc.setArea(loc.areaIndex);
+      loc.setAllAreas();
       return;
     }
     try {
@@ -59,21 +77,33 @@ export default function ClientHome() {
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={["top"]}>
       <View style={{ flex: 1, width: "100%", maxWidth: 560, alignSelf: "center" }}>
         <Row style={{ justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 12 }}>
-          <Pressable
-            onPress={() => loc.setCity(loc.city === "Lagos" ? "Abuja" : "Lagos")}
-            accessibilityLabel="Change city"
-            style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 52, paddingHorizontal: 16, borderRadius: 26, backgroundColor: C.card }}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 6,
+              height: 52,
+              paddingHorizontal: 16,
+              borderRadius: 26,
+              backgroundColor: C.card,
+            }}
           >
             <MapPin size={20} strokeWidth={ICON.stroke} color={C.ink} />
-            <T style={{ fontSize: 16 }}>{loc.city}</T>
-            <ChevronDown size={18} strokeWidth={ICON.stroke} color={C.ink} />
-          </Pressable>
+            <T style={{ fontFamily: F.medium, fontSize: 15 }}>{loc.city} State</T>
+          </View>
           <Row gap={8}>
             {!isAuthenticated ? (
               <Pressable
                 onPress={() => router.push("/auth/sign-in")}
                 accessibilityRole="button"
-                style={{ height: 52, paddingHorizontal: 18, borderRadius: 26, backgroundColor: C.ink, alignItems: "center", justifyContent: "center" }}
+                style={{
+                  height: 52,
+                  paddingHorizontal: 18,
+                  borderRadius: 26,
+                  backgroundColor: C.ink,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
               >
                 <T style={{ color: "#FFFFFF", fontSize: 14 }}>Log in</T>
               </Pressable>
@@ -86,9 +116,11 @@ export default function ClientHome() {
           </Row>
         </Row>
 
-        <T v="display" style={{ paddingHorizontal: 24, marginTop: 22 }}>Find your calm,{"\n"}close to you</T>
+        <T v="display" style={{ paddingHorizontal: 24, marginTop: 18 }}>
+          Find your calm,{"\n"}close to you
+        </T>
 
-        <Row style={{ paddingHorizontal: 24, marginTop: 18, flexWrap: "wrap" }}>
+        <Row style={{ paddingHorizontal: 24, marginTop: 14, flexWrap: "wrap" }}>
           <Chip
             label="Therapists"
             active={mode === "therapists"}
@@ -100,52 +132,84 @@ export default function ClientHome() {
             onPress={() => setMode("stays")}
           />
           <Pressable
-            onPress={() => (loc.source === "all" ? loc.setArea(loc.areaIndex) : loc.setAllAreas())}
+            onPress={nearMe}
             accessibilityRole="button"
             style={{
               height: 44,
               paddingHorizontal: 16,
               borderRadius: 22,
-              backgroundColor: loc.source === "all" ? C.lime : C.card,
+              backgroundColor: loc.source === "gps" ? C.lime : C.card,
               flexDirection: "row",
               alignItems: "center",
               gap: 6,
             }}
           >
-            <T style={{ fontFamily: loc.source === "all" ? F.medium : F.regular, fontSize: 14 }}>
-              All areas in {loc.city}
-            </T>
-          </Pressable>
-          <Pressable
-            onPress={nearMe}
-            accessibilityRole="button"
-            style={{ height: 44, paddingHorizontal: 16, borderRadius: 22, backgroundColor: loc.source === "gps" ? C.lime : C.card, flexDirection: "row", alignItems: "center", gap: 6 }}
-          >
             <LocateFixed size={18} strokeWidth={ICON.stroke} color={C.ink} />
             <T style={{ fontSize: 14 }}>Near me</T>
           </Pressable>
         </Row>
-        {error ? <View style={{ paddingHorizontal: 24, marginTop: 8 }}><ErrorNote text={error} /></View> : null}
+        {error ? (
+          <View style={{ paddingHorizontal: 24, marginTop: 8 }}>
+            <ErrorNote text={error} />
+          </View>
+        ) : null}
 
-        <View style={{ flex: 1, justifyContent: "center", minHeight: 300 }}>
-          {loc.source === "area" ? (
-            <AreaWheel names={areas.map((a) => a.name)} selected={loc.areaIndex} onChange={loc.setArea} />
-          ) : (
+        {/* 36 Nigerian States + Abuja Scroll Wheel */}
+        <View style={{ flex: 1, justifyContent: "center", minHeight: 260 }}>
+          {loc.source === "gps" || loc.source === "search" ? (
             <View style={{ paddingHorizontal: 24, gap: 10 }}>
-              <T v="label">{loc.source === "all" ? `All ${areas.length} areas selected` : "Searching around"}</T>
+              <T v="label">Searching around</T>
               <T v="title">{loc.label}</T>
-              <Btn label="Pick a specific area instead" tone="light" onPress={() => loc.setArea(loc.areaIndex)} />
+              <Btn label="Browse by Nigerian State instead" tone="light" onPress={() => loc.setAllAreas()} />
             </View>
+          ) : (
+            <AreaWheel
+              names={CITY_NAMES}
+              selected={loc.stateIndex}
+              onChange={(idx) => loc.setStateByIndex(idx)}
+              onSelectActive={openResults}
+              height={290}
+            />
           )}
         </View>
 
-        <View style={{ paddingHorizontal: 24, paddingBottom: 120 }}>
-          <Btn
-            label={cta}
-            arrow
-            disabled={!data?.open}
-            onPress={() => (mode === "therapists" ? router.push("/therapists") : router.push("/home/stays"))}
-          />
+        {/* Streamline by cities inside the selected State */}
+        <View style={{ gap: 6, marginBottom: 12 }}>
+          <Row style={{ justifyContent: "space-between", paddingHorizontal: 24 }}>
+            <T v="small" style={{ color: C.muted }}>
+              Cities in {loc.city} (tap to streamline, or view whole state)
+            </T>
+            {loc.selectedAreas.length > 0 ? (
+              <Pressable onPress={() => loc.setAllAreas()}>
+                <T v="small" style={{ fontFamily: F.medium, color: C.ink }}>
+                  Reset to all of {loc.city}
+                </T>
+              </Pressable>
+            ) : null}
+          </Row>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingHorizontal: 24 }}
+          >
+            <Chip
+              label={`Whole of ${loc.city}`}
+              active={loc.selectedAreas.length === 0 && loc.source !== "gps"}
+              onPress={() => loc.setAllAreas()}
+            />
+            {stateAreas.map((a) => (
+              <Chip
+                key={a.name}
+                label={a.name}
+                active={loc.selectedAreas.includes(a.name)}
+                onPress={() => loc.toggleCityArea(a.name)}
+              />
+            ))}
+          </ScrollView>
+        </View>
+
+        <View style={{ paddingHorizontal: 24, paddingBottom: 116 }}>
+          <Btn label={cta} arrow disabled={!data?.open} onPress={openResults} />
         </View>
       </View>
       <PlaceSearch
