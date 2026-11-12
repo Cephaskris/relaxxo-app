@@ -237,7 +237,7 @@ export const goOffline = mutation({
     const t = await myTherapist(ctx, user._id);
     if (!t) return;
     // Unused online time is not refunded (shown clearly in the app).
-    await ctx.db.patch(t._id, { onlineUntil: Date.now() });
+    await ctx.db.patch(t._id, { onlineUntil: 0 });
   },
 });
 

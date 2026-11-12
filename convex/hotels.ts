@@ -184,7 +184,7 @@ export const goOffline = mutation({
   handler: async (ctx) => {
     const user = await requireRole(ctx, "hotel");
     const h = await myHotel(ctx, user._id);
-    if (h) await ctx.db.patch(h._id, { onlineUntil: Date.now() });
+    if (h) await ctx.db.patch(h._id, { onlineUntil: 0 });
   },
 });
 
