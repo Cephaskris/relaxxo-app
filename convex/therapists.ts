@@ -14,6 +14,7 @@ import {
   distanceKm,
   fuzzyKm,
   validLatLng,
+  ALL_STATES,
 } from "./lib/helpers";
 
 async function myTherapist(ctx: QueryCtx, userId: Id<"users">) {
@@ -129,6 +130,28 @@ export const saveProfile = mutation({
       ratingCount: 0,
       bonusGranted: false,
     });
+  },
+});
+
+// Change the State (and cities in it) the therapist is currently available in.
+export const setCoverage = mutation({
+  args: {
+    city: v.string(),
+    areas: v.array(v.string()),
+    allAreas: v.boolean(),
+    lat: v.number(),
+    lng: v.number(),
+  },
+  handler: async (ctx, a) => {
+    const user = await requireRole(ctx, "therapist");
+    if (!ALL_STATES.includes(a.city)) throw new ConvexError("Choose a valid state");
+    validLatLng(a.lat, a.lng);
+    const areas = a.areas.map((s) => cleanText(s, "City", 2, 40)).slice(0, 40);
+    if (!a.allAreas && areas.length === 0) throw new ConvexError("Pick at least one city or All in " + a.city);
+    const area = a.allAreas ? `All in ${a.city}` : areas.join(", ");
+    await ctx.db.patch(user._id, { city: a.city });
+    const t = await myTherapist(ctx, user._id);
+    if (t) await ctx.db.patch(t._id, { city: a.city, area, lat: a.lat, lng: a.lng });
   },
 });
 
@@ -271,6 +294,7 @@ export const dashboard = query({
     ).length;
     return {
       onlineUntil: t.onlineUntil,
+      city: t.city,
       area: t.area,
       viewsToday,
       unlocksToday: today.length,

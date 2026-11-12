@@ -13,6 +13,7 @@ import {
   assertOwnImage,
   distanceKm,
   validLatLng,
+  ALL_STATES,
 } from "./lib/helpers";
 
 async function myHotel(ctx: QueryCtx, ownerId: Id<"users">) {
@@ -55,6 +56,28 @@ export const mine = query({
         }),
       ),
     };
+  },
+});
+
+// Change the State (and cities in it) the hotel is currently available in.
+export const setCoverage = mutation({
+  args: {
+    city: v.string(),
+    areas: v.array(v.string()),
+    allAreas: v.boolean(),
+    lat: v.number(),
+    lng: v.number(),
+  },
+  handler: async (ctx, a) => {
+    const user = await requireRole(ctx, "hotel");
+    if (!ALL_STATES.includes(a.city)) throw new ConvexError("Choose a valid state");
+    validLatLng(a.lat, a.lng);
+    const areas = a.areas.map((s) => cleanText(s, "City", 2, 40)).slice(0, 40);
+    if (!a.allAreas && areas.length === 0) throw new ConvexError("Pick at least one city or All in " + a.city);
+    const area = a.allAreas ? `All in ${a.city}` : areas.join(", ");
+    await ctx.db.patch(user._id, { city: a.city });
+    const h = await myHotel(ctx, user._id);
+    if (h) await ctx.db.patch(h._id, { city: a.city, area, lat: a.lat, lng: a.lng });
   },
 });
 

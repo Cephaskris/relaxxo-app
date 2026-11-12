@@ -8,6 +8,7 @@ import { Screen, T, Row, Btn, Card, ErrorNote, Loading } from "@/components/ui";
 import { RoomsManager } from "@/components/RoomsManager";
 import { Sheet } from "@/components/Sheet";
 import { Packs } from "@/components/Packs";
+import { ProviderStatePicker } from "@/components/ProviderStatePicker";
 import { C, F, ICON } from "@/lib/theme";
 import { errorMessage, timeLeft } from "@/lib/util";
 
@@ -49,7 +50,7 @@ export default function HotelDashboard() {
   return (
     <Screen>
       <Row style={{ justifyContent: "space-between" }}>
-        <T v="label" style={{ fontSize: 15 }}>{h.area}</T>
+        <ProviderStatePicker kind="hotel" city={h.city} area={h.area} />
         <Pressable
           onPress={() => router.push("/host/wallet")}
           style={{ height: 44, paddingHorizontal: 14, borderRadius: 22, backgroundColor: C.card, flexDirection: "row", alignItems: "center", gap: 6 }}

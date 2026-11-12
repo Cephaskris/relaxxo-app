@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { Screen, T, Row, Btn, Card, ErrorNote, Loading } from "@/components/ui";
 import { Sheet } from "@/components/Sheet";
 import { Packs } from "@/components/Packs";
+import { ProviderStatePicker } from "@/components/ProviderStatePicker";
 import { C, F, ICON } from "@/lib/theme";
 import { errorMessage, timeLeft } from "@/lib/util";
 
@@ -47,7 +48,7 @@ export default function TherapistDashboard() {
   return (
     <Screen>
       <Row style={{ justifyContent: "space-between" }}>
-        <T v="label" style={{ fontSize: 15 }}>{d.area}</T>
+        <ProviderStatePicker kind="therapist" city={d.city} area={d.area} />
         <Pressable
           onPress={() => router.push("/pro/wallet")}
           style={{ height: 44, paddingHorizontal: 14, borderRadius: 22, backgroundColor: C.card, flexDirection: "row", alignItems: "center", gap: 6 }}
