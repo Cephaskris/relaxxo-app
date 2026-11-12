@@ -171,6 +171,7 @@ export default defineSchema({
     refunded: v.boolean(),
     firstReplyAt: v.optional(v.number()),
     lastMessageAt: v.number(),
+    chatStartedAt: v.optional(v.number()),
   })
     .index("by_client", ["clientId"])
     .index("by_therapistUser", ["therapistUserId"])
