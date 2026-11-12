@@ -21,8 +21,8 @@ import { LocationProvider } from "@/components/LocationProvider";
 import { Loading } from "@/components/ui";
 import { C } from "@/lib/theme";
 
-const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL;
-if (!convexUrl) throw new Error("EXPO_PUBLIC_CONVEX_URL is not set");
+const convexUrl =
+  process.env.EXPO_PUBLIC_CONVEX_URL || "https://perfect-squid-3.convex.cloud";
 const convex = new ConvexReactClient(convexUrl, { unsavedChangesWarning: false });
 
 // Auth tokens live in the device's encrypted keychain/keystore on mobile.
