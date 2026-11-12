@@ -15,6 +15,7 @@ import {
   validLatLng,
   ALL_STATES,
 } from "./lib/helpers";
+import { cleanSelectedAreas, providerMatches } from "./lib/geo";
 
 async function myHotel(ctx: QueryCtx, ownerId: Id<"users">) {
   return await ctx.db
@@ -234,45 +235,21 @@ export const listNearby = query({
     const open = settings.cities.find((c) => c.name === a.city)?.open ?? false;
     if (!open && viewer?.role !== "admin") return { open: false as const, hotels: [] };
     const searchKm = Math.min(Math.max(a.searchKm ?? settings.defaultSearchKm, 1), 30);
+    void searchKm;
     const now = Date.now();
     const hotels = await ctx.db
       .query("hotels")
-      .withIndex("by_city_verification", (q) => q.eq("city", a.city).eq("verification", "approved"))
+      .filter((q) => q.and(q.eq(q.field("verification"), "approved"), q.gt(q.field("onlineUntil"), now)))
       .collect();
 
-    const selectedAreas = [...(a.areas ?? []), ...(a.area ? [a.area] : [])]
-      .map((s) => s.trim().toLowerCase())
-      .filter(
-        (s) =>
-          s &&
-          !s.startsWith("all of ") &&
-          !s.startsWith("all in ") &&
-          !s.startsWith("whole of ") &&
-          s !== "all areas",
-      );
+    const selectedAreas = cleanSelectedAreas([...(a.areas ?? []), ...(a.area ? [a.area] : [])]);
 
     const out = [];
     for (const h of hotels) {
       if (h.onlineUntil <= now) continue;
       const km = distanceKm(a.lat, a.lng, h.lat, h.lng);
-      const isCityWide =
-        h.area.startsWith("All of ") ||
-        h.area.startsWith("All in ") ||
-        h.area.startsWith("Whole of ") ||
-        h.area === "All areas";
-      const hotelAreas = h.area
-        .split(",")
-        .map((s) => s.trim().toLowerCase())
-        .filter(Boolean);
-      const sameArea =
-        selectedAreas.length > 0 &&
-        (isCityWide || hotelAreas.some((ha) => selectedAreas.includes(ha)));
-
-      if (selectedAreas.length > 0) {
-        if (!sameArea) continue;
-      } else if (!a.allAreas && !isCityWide && km > searchKm) {
-        continue;
-      }
+      const match = providerMatches(h, a.city, selectedAreas);
+      if (!match.ok) continue;
       const rooms = (
         await ctx.db
           .query("rooms")

@@ -14,6 +14,7 @@ import type * as crons from "../crons.js";
 import type * as feedback from "../feedback.js";
 import type * as hotels from "../hotels.js";
 import type * as http from "../http.js";
+import type * as lib_geo from "../lib/geo.js";
 import type * as lib_helpers from "../lib/helpers.js";
 import type * as messages from "../messages.js";
 import type * as notifications from "../notifications.js";
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   feedback: typeof feedback;
   hotels: typeof hotels;
   http: typeof http;
+  "lib/geo": typeof lib_geo;
   "lib/helpers": typeof lib_helpers;
   messages: typeof messages;
   notifications: typeof notifications;

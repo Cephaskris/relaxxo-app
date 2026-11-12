@@ -16,6 +16,7 @@ import {
   validLatLng,
   ALL_STATES,
 } from "./lib/helpers";
+import { cleanSelectedAreas, providerMatches } from "./lib/geo";
 
 async function myTherapist(ctx: QueryCtx, userId: Id<"users">) {
   return await ctx.db
@@ -336,21 +337,16 @@ export const listNearby = query({
     }
     const searchKm = Math.min(Math.max(a.searchKm ?? settings.defaultSearchKm, 1), 30);
     const now = Date.now();
-    const candidates = await ctx.db
-      .query("therapists")
-      .withIndex("by_city_verification", (q) => q.eq("city", a.city).eq("verification", "approved"))
-      .collect();
+    // Every approved therapist who is online right now; we match the State
+    // by their registered state OR where they physically are.
+    const candidates = (
+      await ctx.db
+        .query("therapists")
+        .filter((q) => q.and(q.eq(q.field("verification"), "approved"), q.gt(q.field("onlineUntil"), now)))
+        .collect()
+    );
 
-    const selectedAreas = [...(a.areas ?? []), ...(a.area ? [a.area] : [])]
-      .map((s) => s.trim().toLowerCase())
-      .filter(
-        (s) =>
-          s &&
-          !s.startsWith("all of ") &&
-          !s.startsWith("all in ") &&
-          !s.startsWith("whole of ") &&
-          s !== "all areas",
-      );
+    const selectedAreas = cleanSelectedAreas([...(a.areas ?? []), ...(a.area ? [a.area] : [])]);
 
     const out = [];
     for (const t of candidates) {
@@ -358,26 +354,10 @@ export const listNearby = query({
       if (a.gender && t.gender !== a.gender) continue;
       if (a.workType && t.workType !== a.workType && t.workType !== "both") continue;
       const km = distanceKm(a.lat, a.lng, t.lat, t.lng);
-      const isCityWide =
-        t.area.startsWith("All of ") ||
-        t.area.startsWith("All in ") ||
-        t.area.startsWith("Whole of ") ||
-        t.area === "All areas";
-      const therapistAreas = t.area
-        .split(",")
-        .map((s) => s.trim().toLowerCase())
-        .filter(Boolean);
-      const sameArea =
-        selectedAreas.length > 0 &&
-        (isCityWide || therapistAreas.some((ta) => selectedAreas.includes(ta)));
-
-      if (selectedAreas.length > 0) {
-        if (!sameArea) continue;
-      } else if (!a.allAreas && !isCityWide) {
-        const homeOk = t.workType !== "studio" && km <= t.radiusKm;
-        const studioOk = t.workType !== "home" && km <= searchKm;
-        if (!homeOk && !studioOk) continue;
-      }
+      const match = providerMatches(t, a.city, selectedAreas);
+      if (!match.ok) continue;
+      const sameArea = match.sameArea;
+      void searchKm;
       const owner = await ctx.db.get(t.userId);
       if (owner?.accountStatus && owner.accountStatus !== "active") continue;
       const services = (
