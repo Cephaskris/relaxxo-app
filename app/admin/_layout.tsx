@@ -17,6 +17,7 @@ const NAV = [
   { href: "/admin/refunds", label: "Refunds", Icon: RotateCcw },
   { href: "/admin/notifications", label: "Notifications", Icon: Bell },
   { href: "/admin/settings", label: "Pricing & settings", Icon: Settings },
+  { href: "/home", label: "Explore app", Icon: Globe },
   { href: "/landing", label: "Landing page", Icon: Globe },
 ];
 

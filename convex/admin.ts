@@ -714,7 +714,16 @@ export const makeAdmin = internalMutation({
       .query("users")
       .withIndex("phone", (q) => q.eq("phone", phone))
       .first();
-    if (!user) throw new Error("Sign in once with this number first");
+    if (!user) {
+      return await ctx.db.insert("users", {
+        phone,
+        phoneVerificationTime: Date.now(),
+        role: "admin",
+        accountStatus: "active",
+        name: "Admin",
+        credits: 0,
+      });
+    }
     await ctx.db.patch(user._id, { role: "admin", accountStatus: "active", name: user.name ?? "Admin" });
     return user._id;
   },

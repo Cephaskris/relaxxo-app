@@ -273,6 +273,7 @@ export const listNearby = query({
     city: v.string(),
     lat: v.number(),
     lng: v.number(),
+    allAreas: v.optional(v.boolean()),
     searchKm: v.optional(v.number()),
     category: v.optional(v.string()),
     gender: v.optional(v.union(v.literal("female"), v.literal("male"))),
@@ -299,9 +300,12 @@ export const listNearby = query({
       if (a.gender && t.gender !== a.gender) continue;
       if (a.workType && t.workType !== a.workType && t.workType !== "both") continue;
       const km = distanceKm(a.lat, a.lng, t.lat, t.lng);
-      const homeOk = t.workType !== "studio" && km <= t.radiusKm;
-      const studioOk = t.workType !== "home" && km <= searchKm;
-      if (!homeOk && !studioOk) continue;
+      const isCityWide = t.area.startsWith("All of ") || t.area === "All areas";
+      if (!a.allAreas && !isCityWide) {
+        const homeOk = t.workType !== "studio" && km <= t.radiusKm;
+        const studioOk = t.workType !== "home" && km <= searchKm;
+        if (!homeOk && !studioOk) continue;
+      }
       const owner = await ctx.db.get(t.userId);
       if (owner?.accountStatus && owner.accountStatus !== "active") continue;
       const services = (

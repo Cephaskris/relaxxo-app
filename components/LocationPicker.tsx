@@ -1,14 +1,15 @@
 import React, { useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 import * as Location from "expo-location";
 import { T, Row, Chip, Btn, ErrorNote, Card } from "@/components/ui";
 import { PlaceSearch } from "@/components/PlaceSearch";
 import { CITIES } from "@/lib/areas";
+import { C, F } from "@/lib/theme";
 import { errorMessage } from "@/lib/util";
 
 export type PickedLocation = { area: string; lat: number; lng: number; address?: string };
 
-// Where a therapist works / where a hotel is: choose an area, then set the exact pin by GPS or address search.
+// Where a therapist works / where a hotel is: choose an area (or all areas in the city), then set the pin by GPS or address search.
 export function LocationPicker({
   city,
   value,
@@ -24,6 +25,27 @@ export function LocationPicker({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const areas = CITIES[city] ?? [];
+  const allAreasLabel = `All of ${city}`;
+  const isAllAreas = value?.area === allAreasLabel;
+
+  function selectAllAreas() {
+    const center = areas[0] ?? { lat: 6.5244, lng: 3.3792 };
+    if (isAllAreas && areas[0]) {
+      onChange({
+        area: areas[0].name,
+        lat: value?.lat ?? areas[0].lat,
+        lng: value?.lng ?? areas[0].lng,
+        address: value?.address,
+      });
+    } else {
+      onChange({
+        area: allAreasLabel,
+        lat: value?.lat ?? center.lat,
+        lng: value?.lng ?? center.lng,
+        address: value?.address,
+      });
+    }
+  }
 
   async function gps() {
     setError(null);
@@ -42,13 +64,31 @@ export function LocationPicker({
 
   return (
     <View style={{ gap: 10 }}>
-      <T v="label">Area</T>
+      <Row style={{ justifyContent: "space-between", alignItems: "center" }}>
+        <T v="label">Area</T>
+        <Pressable
+          onPress={selectAllAreas}
+          accessibilityRole="button"
+          style={{
+            height: 36,
+            paddingHorizontal: 14,
+            borderRadius: 18,
+            backgroundColor: isAllAreas ? C.lime : C.ink,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <T style={{ fontFamily: F.medium, fontSize: 13, color: isAllAreas ? C.ink : "#FFFFFF" }}>
+            {isAllAreas ? `✓ All areas in ${city} selected` : `Select all areas in ${city}`}
+          </T>
+        </Pressable>
+      </Row>
       <Row style={{ flexWrap: "wrap" }}>
         {areas.map((a) => (
           <Chip
             key={a.name}
             label={a.name}
-            active={value?.area === a.name}
+            active={isAllAreas || value?.area === a.name}
             onPress={() => onChange(exactRequired && value ? { ...value, area: a.name } : { area: a.name, lat: a.lat, lng: a.lng })}
           />
         ))}
@@ -60,7 +100,10 @@ export function LocationPicker({
       </Row>
       {value ? (
         <Card style={{ padding: 14 }}>
-          <T v="small">Pin set in {value.area}{value.address ? ` · ${value.address}` : ""}</T>
+          <T v="small">
+            {isAllAreas ? `Covering all areas in ${city}` : `Pin set in ${value.area}`}
+            {value.address ? ` · ${value.address}` : ""}
+          </T>
         </Card>
       ) : null}
       <ErrorNote text={error} />

@@ -39,6 +39,15 @@ export function AccountScreen({ extra }: { extra?: React.ReactNode }) {
       <T v="display" style={{ marginTop: 4 }}>{me.name || "You"}</T>
       <T v="label">{me.phone ? prettyPhone(me.phone) : ""} · {me.role}</T>
 
+      {me.role === "admin" ? (
+        <Btn
+          style={{ marginTop: 16 }}
+          label="Open Admin Dashboard"
+          arrow
+          onPress={() => router.push("/admin")}
+        />
+      ) : null}
+
       <Card style={{ marginTop: 20, gap: 14 }}>
         <Field label="Name" value={name ?? me.name} onChangeText={setName} maxLength={60} />
         <View style={{ gap: 6 }}>

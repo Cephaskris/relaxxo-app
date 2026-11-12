@@ -5,15 +5,16 @@ import { CITIES } from "@/lib/areas";
 type Loc = {
   city: string;
   areaIndex: number;
-  label: string; // what we show: area name or "Near you"
+  label: string; // what we show: area name, "All of Lagos", or "Near you"
   lat: number;
   lng: number;
-  source: "area" | "gps" | "search";
+  source: "area" | "all" | "gps" | "search";
 };
 
 type Ctx = Loc & {
   setCity: (city: string) => void;
   setArea: (index: number) => void;
+  setAllAreas: () => void;
   setCustom: (label: string, lat: number, lng: number) => void;
   useGPS: () => Promise<void>;
 };
@@ -43,11 +44,25 @@ export function LocationProvider({ children }: { children: React.ReactNode }) {
       setCity: (city) => {
         const idx = 2;
         const a = CITIES[city][idx];
-        setLoc({ city, areaIndex: idx, label: a.name, lat: a.lat, lng: a.lng, source: "area" });
+        if (loc.source === "all") {
+          setLoc({ city, areaIndex: idx, label: `All of ${city}`, lat: a.lat, lng: a.lng, source: "all" });
+        } else {
+          setLoc({ city, areaIndex: idx, label: a.name, lat: a.lat, lng: a.lng, source: "area" });
+        }
       },
       setArea: (index) => {
         const a = CITIES[loc.city][index];
         if (a) setLoc({ ...loc, areaIndex: index, label: a.name, lat: a.lat, lng: a.lng, source: "area" });
+      },
+      setAllAreas: () => {
+        const a = CITIES[loc.city]?.[loc.areaIndex] ?? CITIES[loc.city]?.[0] ?? CITIES.Lagos[0];
+        setLoc({
+          ...loc,
+          label: `All of ${loc.city}`,
+          lat: a.lat,
+          lng: a.lng,
+          source: "all",
+        });
       },
       setCustom: (label, lat, lng) =>
         setLoc({ ...loc, city: nearestCity(lat, lng, loc.city), label, lat, lng, source: "search" }),

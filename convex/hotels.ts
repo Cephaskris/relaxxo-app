@@ -178,7 +178,7 @@ export const recordContactView = mutation({
 // ---------- Client-facing (guests allowed). Hotel contact is free. ----------
 
 export const listNearby = query({
-  args: { city: v.string(), lat: v.number(), lng: v.number(), searchKm: v.optional(v.number()) },
+  args: { city: v.string(), lat: v.number(), lng: v.number(), allAreas: v.optional(v.boolean()), searchKm: v.optional(v.number()) },
   handler: async (ctx, a) => {
     const settings = await getSettings(ctx);
     const viewer = await getUser(ctx);
@@ -194,7 +194,8 @@ export const listNearby = query({
     for (const h of hotels) {
       if (h.onlineUntil <= now) continue;
       const km = distanceKm(a.lat, a.lng, h.lat, h.lng);
-      if (km > searchKm) continue;
+      const isCityWide = h.area.startsWith("All of ") || h.area === "All areas";
+      if (!a.allAreas && !isCityWide && km > searchKm) continue;
       const rooms = (
         await ctx.db
           .query("rooms")

@@ -27,6 +27,7 @@ export default function TherapistsInArea() {
     city: loc.city,
     lat: loc.lat,
     lng: loc.lng,
+    allAreas: loc.source === "all",
     category,
     gender,
     workType,

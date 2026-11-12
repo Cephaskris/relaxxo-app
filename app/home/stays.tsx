@@ -12,7 +12,7 @@ import { CITIES } from "@/lib/areas";
 
 export default function Stays() {
   const loc = useLoc();
-  const res = useQuery(api.hotels.listNearby, { city: loc.city, lat: loc.lat, lng: loc.lng });
+  const res = useQuery(api.hotels.listNearby, { city: loc.city, lat: loc.lat, lng: loc.lng, allAreas: loc.source === "all" });
   const areas = CITIES[loc.city];
   if (res === undefined) return <Loading />;
   return (
@@ -20,6 +20,11 @@ export default function Stays() {
       <T v="label">Stays with free rooms · {loc.city}</T>
       <T v="display" style={{ marginTop: 4 }}>{loc.label}</T>
       <Row style={{ flexWrap: "wrap", marginTop: 14 }}>
+        <Chip
+          label={`All areas in ${loc.city}`}
+          active={loc.source === "all"}
+          onPress={() => loc.setAllAreas()}
+        />
         {areas.slice(0, 6).map((a, i) => (
           <Chip key={a.name} label={a.name} active={loc.source === "area" && loc.areaIndex === i} onPress={() => loc.setArea(i)} />
         ))}

@@ -77,6 +77,12 @@ export function LandingPage() {
     router.push("/home");
   }
 
+  function jumpToAllAreas(city: "Lagos" | "Abuja") {
+    loc.setCity(city);
+    setTimeout(() => loc.setAllAreas(), 0);
+    router.push("/home");
+  }
+
   function primaryDestination() {
     if (!isAuthenticated || !me) return "/auth/sign-in";
     if (me.role === "admin") return "/admin";
@@ -390,6 +396,22 @@ export function LandingPage() {
           </Row>
 
           <Row style={{ flexWrap: "wrap" }} gap={10}>
+            <Pressable
+              onPress={() => jumpToAllAreas(selectedCity)}
+              style={{
+                backgroundColor: C.lime,
+                paddingHorizontal: 18,
+                paddingVertical: 14,
+                borderRadius: R.pill,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <MapPin size={16} strokeWidth={ICON.stroke} color={C.ink} />
+              <T style={{ fontFamily: F.medium, fontSize: 15 }}>All areas in {selectedCity}</T>
+              <ArrowUpRight size={15} strokeWidth={ICON.stroke} color={C.ink} />
+            </Pressable>
             {areas.map((a, idx) => (
               <Pressable
                 key={a.name}

@@ -10,7 +10,7 @@ import { AreaWheel } from "@/components/AreaWheel";
 import { PlaceSearch } from "@/components/PlaceSearch";
 import { useLoc } from "@/components/LocationProvider";
 import { CITIES } from "@/lib/areas";
-import { C, ICON } from "@/lib/theme";
+import { C, F, ICON } from "@/lib/theme";
 import { errorMessage } from "@/lib/util";
 
 export default function ClientHome() {
@@ -21,8 +21,18 @@ export default function ClientHome() {
   const [error, setError] = useState<string | null>(null);
   const areas = CITIES[loc.city] ?? CITIES.Lagos;
 
-  const therapists = useQuery(api.therapists.listNearby, { city: loc.city, lat: loc.lat, lng: loc.lng });
-  const hotels = useQuery(api.hotels.listNearby, { city: loc.city, lat: loc.lat, lng: loc.lng });
+  const therapists = useQuery(api.therapists.listNearby, {
+    city: loc.city,
+    lat: loc.lat,
+    lng: loc.lng,
+    allAreas: loc.source === "all",
+  });
+  const hotels = useQuery(api.hotels.listNearby, {
+    city: loc.city,
+    lat: loc.lat,
+    lng: loc.lng,
+    allAreas: loc.source === "all",
+  });
 
   let cta = "Loading…";
   const data = mode === "therapists" ? therapists : hotels;
@@ -76,23 +86,34 @@ export default function ClientHome() {
 
         <T v="display" style={{ paddingHorizontal: 24, marginTop: 22 }}>Find your calm,{"\n"}close to you</T>
 
-        <Row style={{ paddingHorizontal: 24, marginTop: 18 }}>
+        <Row style={{ paddingHorizontal: 24, marginTop: 18, flexWrap: "wrap" }}>
           <Chip
             label="Therapists"
-            active={mode === "therapists" && loc.source === "area"}
-            onPress={() => {
-              setMode("therapists");
-              if (loc.source !== "area") loc.setArea(loc.areaIndex);
-            }}
+            active={mode === "therapists"}
+            onPress={() => setMode("therapists")}
           />
           <Chip
             label="Stays"
-            active={mode === "stays" && loc.source === "area"}
-            onPress={() => {
-              setMode("stays");
-              if (loc.source !== "area") loc.setArea(loc.areaIndex);
-            }}
+            active={mode === "stays"}
+            onPress={() => setMode("stays")}
           />
+          <Pressable
+            onPress={() => (loc.source === "all" ? loc.setArea(loc.areaIndex) : loc.setAllAreas())}
+            accessibilityRole="button"
+            style={{
+              height: 44,
+              paddingHorizontal: 16,
+              borderRadius: 22,
+              backgroundColor: loc.source === "all" ? C.lime : C.card,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <T style={{ fontFamily: loc.source === "all" ? F.medium : F.regular, fontSize: 14 }}>
+              All areas in {loc.city}
+            </T>
+          </Pressable>
           <Pressable
             onPress={nearMe}
             accessibilityRole="button"
@@ -108,10 +129,10 @@ export default function ClientHome() {
           {loc.source === "area" ? (
             <AreaWheel names={areas.map((a) => a.name)} selected={loc.areaIndex} onChange={loc.setArea} />
           ) : (
-            <View style={{ paddingHorizontal: 24, gap: 8 }}>
-              <T v="label">Searching around</T>
+            <View style={{ paddingHorizontal: 24, gap: 10 }}>
+              <T v="label">{loc.source === "all" ? `All ${areas.length} areas selected` : "Searching around"}</T>
               <T v="title">{loc.label}</T>
-              <Btn label="Pick an area instead" tone="light" onPress={() => loc.setArea(loc.areaIndex)} />
+              <Btn label="Pick a specific area instead" tone="light" onPress={() => loc.setArea(loc.areaIndex)} />
             </View>
           )}
         </View>
