@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Image, Linking, ScrollView, View } from "react-native";
+import { Image, Linking, Pressable, ScrollView, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import * as Clipboard from "expo-clipboard";
@@ -10,6 +10,7 @@ import { Screen, T, Row, BackBtn, CircleBtn, Btn, Pill, Placeholder, Loading, Er
 import { Sheet } from "@/components/Sheet";
 import { Packs } from "@/components/Packs";
 import { ReportSheet } from "@/components/ReportSheet";
+import { ImageLightbox } from "@/components/ImageLightbox";
 import { useLoc } from "@/components/LocationProvider";
 import { C, F, ICON } from "@/lib/theme";
 import { naira, prettyPhone, errorMessage } from "@/lib/util";
@@ -35,6 +36,7 @@ export default function TherapistProfile() {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (viewedRef.current || !therapistId) return;
@@ -94,9 +96,14 @@ export default function TherapistProfile() {
         </Row>
 
         <Row style={{ marginTop: 22 }} gap={14}>
-          <View style={{ width: 84, height: 84, borderRadius: 42, overflow: "hidden", borderWidth: 3, borderColor: C.lime }}>
+          <Pressable
+            onPress={() => t.photos[0] && setViewerIndex(0)}
+            accessibilityRole="button"
+            accessibilityLabel="View profile picture"
+            style={{ width: 84, height: 84, borderRadius: 42, overflow: "hidden", borderWidth: 3, borderColor: C.lime }}
+          >
             {t.photos[0] ? <Image source={{ uri: t.photos[0] }} style={{ width: "100%", height: "100%" }} /> : <Placeholder style={{ flex: 1 }} label="" />}
-          </View>
+          </Pressable>
           <View style={{ flex: 1 }}>
             <T v="title">{t.displayName}</T>
             <T v="label">{t.distanceKm ? `~${t.distanceKm} km · ` : ""}{t.area}</T>
@@ -113,7 +120,14 @@ export default function TherapistProfile() {
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }} style={{ marginTop: 16, marginRight: -24 }}>
           {t.photos.map((p, i) => (
-            <Image key={i} source={{ uri: p }} style={{ width: 160, height: 130, borderRadius: 20 }} />
+            <Pressable
+              key={i}
+              onPress={() => setViewerIndex(i)}
+              accessibilityRole="button"
+              accessibilityLabel={`View photo ${i + 1}`}
+            >
+              <Image source={{ uri: p }} style={{ width: 160, height: 130, borderRadius: 20 }} />
+            </Pressable>
           ))}
         </ScrollView>
 
@@ -221,6 +235,7 @@ export default function TherapistProfile() {
       </Sheet>
 
       <ReportSheet visible={reportOpen} onClose={() => setReportOpen(false)} targetType="therapist" targetId={t._id} />
+      <ImageLightbox images={t.photos} initialIndex={viewerIndex} onClose={() => setViewerIndex(null)} />
     </View>
   );
 }

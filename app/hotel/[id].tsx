@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Image, Linking, ScrollView, View } from "react-native";
+import { Image, Linking, Pressable, ScrollView, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import * as Clipboard from "expo-clipboard";
@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Screen, T, Row, BackBtn, CircleBtn, Btn, Pill, Card, Placeholder, Loading } from "@/components/ui";
 import { ReportSheet } from "@/components/ReportSheet";
+import { ImageLightbox } from "@/components/ImageLightbox";
 import { C, F, ICON } from "@/lib/theme";
 import { naira, prettyPhone } from "@/lib/util";
 
@@ -21,6 +22,8 @@ export default function HotelProfile() {
   const [contactOpen, setContactOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [viewerImages, setViewerImages] = useState<string[]>([]);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   if (h === undefined) return <Loading />;
   if (h === null)
     return (
@@ -45,9 +48,19 @@ export default function HotelProfile() {
           <T v="label" style={{ fontSize: 15 }}>Stay · {h.area}</T>
           <CircleBtn label="Report" onPress={() => (isAuthenticated ? setReportOpen(true) : router.push("/auth/sign-in"))} icon={<Flag size={22} strokeWidth={ICON.stroke} color={C.ink} />} />
         </Row>
-        <View style={{ height: 220, borderRadius: 28, overflow: "hidden", marginTop: 18 }}>
+        <Pressable
+          onPress={() => {
+            if (h.cover) {
+              setViewerImages([h.cover]);
+              setViewerIndex(0);
+            }
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="View hotel cover photo"
+          style={{ height: 220, borderRadius: 28, overflow: "hidden", marginTop: 18 }}
+        >
           {h.cover ? <Image source={{ uri: h.cover }} style={{ width: "100%", height: "100%" }} /> : <Placeholder style={{ flex: 1 }} />}
-        </View>
+        </Pressable>
         <Row style={{ justifyContent: "space-between", alignItems: "flex-start", marginTop: 16 }}>
           <View style={{ flex: 1 }}>
             <T v="title">{h.name}</T>
@@ -65,7 +78,19 @@ export default function HotelProfile() {
             <Card key={r._id} style={{ padding: 4 }}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
                 {r.photos.length ? (
-                  r.photos.map((p, j) => <Image key={j} source={{ uri: p }} style={{ width: 240, height: 150, borderRadius: 24 }} />)
+                  r.photos.map((p, j) => (
+                    <Pressable
+                      key={j}
+                      onPress={() => {
+                        setViewerImages(r.photos);
+                        setViewerIndex(j);
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={`View room photo ${j + 1}`}
+                    >
+                      <Image source={{ uri: p }} style={{ width: 240, height: 150, borderRadius: 24 }} />
+                    </Pressable>
+                  ))
                 ) : (
                   <Placeholder seed={i} style={{ width: 240, height: 150, borderRadius: 24 }} />
                 )}
@@ -112,6 +137,7 @@ export default function HotelProfile() {
         )}
       </View>
       <ReportSheet visible={reportOpen} onClose={() => setReportOpen(false)} targetType="hotel" targetId={h._id} />
+      <ImageLightbox images={viewerImages} initialIndex={viewerIndex} onClose={() => setViewerIndex(null)} />
     </View>
   );
 }
