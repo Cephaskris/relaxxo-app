@@ -24,6 +24,7 @@ export default function SignIn() {
     try {
       await signIn("termii", { phone: p });
       setPhone(p);
+      setCode("123456");
       setStep("code");
     } catch (e) {
       setError(errorMessage(e));
@@ -55,7 +56,7 @@ export default function SignIn() {
         <T style={{ color: "#6B6B66" }}>
           {step === "phone"
             ? "We'll text you a 6-digit code. New here? This creates your account."
-            : `Sent to ${prettyPhone(phone)}`}
+            : `Testing mode: 123456 is pre-filled for ${prettyPhone(phone)}`}
         </T>
       </View>
       <View style={{ marginTop: 32, gap: 16 }}>

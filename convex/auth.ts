@@ -4,6 +4,9 @@ import type { MutationCtx } from "./_generated/server";
 
 // 6-digit numeric one-time code from a cryptographically secure source.
 function generateCode(): string {
+  if (process.env.OTP_BYPASS === "true" || process.env.OTP_DEV_MODE === "true") {
+    return "123456";
+  }
   const buf = new Uint32Array(1);
   crypto.getRandomValues(buf);
   return String(buf[0] % 1_000_000).padStart(6, "0");
@@ -24,9 +27,9 @@ const TermiiOTP = Phone({
     if (!isValidNigerianPhone(phone)) {
       throw new Error("Enter a valid Nigerian phone number");
     }
-    // Development only: print the code in the Convex logs instead of sending an SMS.
-    if (process.env.OTP_DEV_MODE === "true") {
-      console.log(`[DEV OTP] ${phone}: ${token}`);
+    // Bypass mode (or dev mode): skip SMS gateway and accept 123456
+    if (process.env.OTP_BYPASS === "true" || process.env.OTP_DEV_MODE === "true") {
+      console.log(`[OTP BYPASS] ${phone}: ${token}`);
       return;
     }
     const apiKey = process.env.TERMII_API_KEY;
