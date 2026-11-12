@@ -60,7 +60,8 @@ export const add = mutation({
     ).length;
     if (count >= 30) throw new ConvexError("You can list up to 30 room types");
     const clean = await validate(ctx, user, a);
-    return await ctx.db.insert("rooms", { ...clean, hotelId: h._id, status: "pending" });
+    const status = h.verification === "approved" ? "approved" : "pending";
+    return await ctx.db.insert("rooms", { ...clean, hotelId: h._id, status });
   },
 });
 
@@ -68,12 +69,14 @@ export const update = mutation({
   args: { roomId: v.id("rooms"), ...roomArgs },
   handler: async (ctx, { roomId, ...a }) => {
     const user = await requireRole(ctx, "hotel");
+    const h = await ownHotel(ctx, user);
     const r = await ownRoom(ctx, user, roomId);
     const clean = await validate(ctx, user, a);
     const photosChanged = JSON.stringify(r.photoIds) !== JSON.stringify(clean.photoIds);
+    const status = h.verification === "approved" ? "approved" : (photosChanged ? "pending" : r.status);
     await ctx.db.patch(roomId, {
       ...clean,
-      status: photosChanged ? "pending" : r.status,
+      status,
       needsReview: r.status === "approved" && !photosChanged ? true : undefined,
     });
   },

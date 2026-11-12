@@ -50,7 +50,8 @@ export const add = mutation({
     ).length;
     if (count >= 15) throw new ConvexError("You can list up to 15 services");
     const clean = await validate(ctx, a);
-    return await ctx.db.insert("services", { ...clean, therapistId: t._id, status: "pending" });
+    const status = t.verification === "approved" ? "approved" : "pending";
+    return await ctx.db.insert("services", { ...clean, therapistId: t._id, status });
   },
 });
 
@@ -62,7 +63,8 @@ export const update = mutation({
     const s = await ctx.db.get(serviceId);
     if (!s || s.therapistId !== t._id) throw new ConvexError("Not found");
     const clean = await validate(ctx, a);
-    await ctx.db.patch(serviceId, { ...clean, status: "pending", rejectReason: undefined });
+    const status = t.verification === "approved" ? "approved" : "pending";
+    await ctx.db.patch(serviceId, { ...clean, status, rejectReason: undefined });
   },
 });
 

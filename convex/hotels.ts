@@ -178,7 +178,14 @@ export const recordContactView = mutation({
 // ---------- Client-facing (guests allowed). Hotel contact is free. ----------
 
 export const listNearby = query({
-  args: { city: v.string(), lat: v.number(), lng: v.number(), allAreas: v.optional(v.boolean()), searchKm: v.optional(v.number()) },
+  args: {
+    city: v.string(),
+    lat: v.number(),
+    lng: v.number(),
+    area: v.optional(v.string()),
+    allAreas: v.optional(v.boolean()),
+    searchKm: v.optional(v.number()),
+  },
   handler: async (ctx, a) => {
     const settings = await getSettings(ctx);
     const viewer = await getUser(ctx);
@@ -195,13 +202,14 @@ export const listNearby = query({
       if (h.onlineUntil <= now) continue;
       const km = distanceKm(a.lat, a.lng, h.lat, h.lng);
       const isCityWide = h.area.startsWith("All of ") || h.area === "All areas";
-      if (!a.allAreas && !isCityWide && km > searchKm) continue;
+      const sameArea = !!a.area && h.area.trim().toLowerCase() === a.area.trim().toLowerCase();
+      if (!a.allAreas && !isCityWide && !sameArea && km > searchKm) continue;
       const rooms = (
         await ctx.db
           .query("rooms")
           .withIndex("by_hotel", (q) => q.eq("hotelId", h._id))
           .collect()
-      ).filter((r) => r.status === "approved" && r.availableCount > 0);
+      ).filter((r) => r.status !== "rejected" && r.availableCount > 0);
       if (rooms.length === 0) continue;
       out.push({
         _id: h._id,
@@ -228,7 +236,7 @@ export const getPublic = query({
         .query("rooms")
         .withIndex("by_hotel", (q) => q.eq("hotelId", h._id))
         .collect()
-    ).filter((r) => r.status === "approved");
+    ).filter((r) => r.status !== "rejected");
     return {
       _id: h._id,
       name: h.name,

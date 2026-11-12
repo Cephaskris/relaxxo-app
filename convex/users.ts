@@ -82,6 +82,21 @@ export const updateMe = mutation({
     }
     if (args.gender !== undefined) patch.gender = args.gender;
     await ctx.db.patch(user._id, patch);
+    if (args.city !== undefined) {
+      if (user.role === "therapist") {
+        const t = await ctx.db
+          .query("therapists")
+          .withIndex("by_user", (q) => q.eq("userId", user._id))
+          .first();
+        if (t) await ctx.db.patch(t._id, { city: args.city });
+      } else if (user.role === "hotel") {
+        const h = await ctx.db
+          .query("hotels")
+          .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
+          .first();
+        if (h) await ctx.db.patch(h._id, { city: args.city });
+      }
+    }
   },
 });
 

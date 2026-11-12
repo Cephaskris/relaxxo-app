@@ -273,6 +273,7 @@ export const listNearby = query({
     city: v.string(),
     lat: v.number(),
     lng: v.number(),
+    area: v.optional(v.string()),
     allAreas: v.optional(v.boolean()),
     searchKm: v.optional(v.number()),
     category: v.optional(v.string()),
@@ -301,7 +302,8 @@ export const listNearby = query({
       if (a.workType && t.workType !== a.workType && t.workType !== "both") continue;
       const km = distanceKm(a.lat, a.lng, t.lat, t.lng);
       const isCityWide = t.area.startsWith("All of ") || t.area === "All areas";
-      if (!a.allAreas && !isCityWide) {
+      const sameArea = !!a.area && t.area.trim().toLowerCase() === a.area.trim().toLowerCase();
+      if (!a.allAreas && !isCityWide && !sameArea) {
         const homeOk = t.workType !== "studio" && km <= t.radiusKm;
         const studioOk = t.workType !== "home" && km <= searchKm;
         if (!homeOk && !studioOk) continue;
@@ -313,22 +315,21 @@ export const listNearby = query({
           .query("services")
           .withIndex("by_therapist", (q) => q.eq("therapistId", t._id))
           .collect()
-      ).filter((s) => s.status === "approved");
-      if (services.length === 0) continue;
+      ).filter((s) => s.status !== "rejected");
       if (a.category && !services.some((s) => s.category === a.category)) continue;
-      const fromPrice = Math.min(...services.map((s) => s.priceNaira));
-      if (a.maxPrice && fromPrice > a.maxPrice) continue;
+      const fromPrice = services.length > 0 ? Math.min(...services.map((s) => s.priceNaira)) : 0;
+      if (a.maxPrice && (services.length === 0 || fromPrice > a.maxPrice)) continue;
       out.push({
         _id: t._id,
         displayName: t.displayName,
         area: t.area,
-        distanceKm: fuzzyKm(km),
+        distanceKm: sameArea ? Math.min(fuzzyKm(km), 2) : fuzzyKm(km),
         workType: t.workType,
         minutesLeft: Math.round((t.onlineUntil - now) / 60_000),
         rating: t.ratingCount ? Math.round((t.ratingSum / t.ratingCount) * 10) / 10 : null,
         ratingCount: t.ratingCount,
         fromPrice,
-        serviceNames: services.slice(0, 3).map((s) => s.name),
+        serviceNames: services.length > 0 ? services.slice(0, 3).map((s) => s.name) : ["Massage therapy"],
         photo: t.photoIds[0] ? await ctx.storage.getUrl(t.photoIds[0]) : null,
       });
     }
@@ -349,7 +350,7 @@ export const getPublic = query({
         .withIndex("by_therapist", (q) => q.eq("therapistId", t._id))
         .collect()
     )
-      .filter((s) => s.status === "approved")
+      .filter((s) => s.status !== "rejected")
       .map((s) => ({
         _id: s._id,
         name: s.name,

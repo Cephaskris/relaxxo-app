@@ -27,6 +27,7 @@ export default function TherapistsInArea() {
     city: loc.city,
     lat: loc.lat,
     lng: loc.lng,
+    area: loc.source === "area" ? loc.label : undefined,
     allAreas: loc.source === "all",
     category,
     gender,

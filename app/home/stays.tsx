@@ -12,7 +12,13 @@ import { CITIES } from "@/lib/areas";
 
 export default function Stays() {
   const loc = useLoc();
-  const res = useQuery(api.hotels.listNearby, { city: loc.city, lat: loc.lat, lng: loc.lng, allAreas: loc.source === "all" });
+  const res = useQuery(api.hotels.listNearby, {
+    city: loc.city,
+    lat: loc.lat,
+    lng: loc.lng,
+    area: loc.source === "area" ? loc.label : undefined,
+    allAreas: loc.source === "all",
+  });
   const areas = CITIES[loc.city];
   if (res === undefined) return <Loading />;
   return (

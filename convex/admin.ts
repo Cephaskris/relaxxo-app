@@ -216,6 +216,11 @@ export const reviewHotel = mutation({
     if (!h) throw new ConvexError("Not found");
     if (approve) {
       await ctx.db.patch(hotelId, { verification: "approved", rejectReason: undefined });
+      const rooms = await ctx.db
+        .query("rooms")
+        .withIndex("by_hotel", (q) => q.eq("hotelId", hotelId))
+        .collect();
+      for (const r of rooms) if (r.status === "pending") await ctx.db.patch(r._id, { status: "approved" });
       if (!h.bonusGranted) {
         const settings = await getSettings(ctx);
         if (settings.welcomeBonusCredits > 0) {
