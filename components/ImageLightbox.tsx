@@ -79,25 +79,28 @@ export function ImageLightbox({
                   pointerEvents="none"
                   style={{
                     position: "absolute",
+                    zIndex: 10,
                     alignItems: "center",
                     justifyContent: "center",
-                    transform: [{ rotate: "-22deg" }],
-                    paddingHorizontal: 18,
-                    paddingVertical: 8,
-                    borderRadius: 12,
-                    backgroundColor: "rgba(0, 0, 0, 0.22)",
+                    transform: [{ rotate: "-18deg" }],
+                    paddingHorizontal: 22,
+                    paddingVertical: 10,
+                    borderRadius: 14,
+                    backgroundColor: "rgba(0, 0, 0, 0.48)",
+                    borderWidth: 1,
+                    borderColor: "rgba(255, 255, 255, 0.35)",
                   }}
                 >
                   <T
                     style={{
-                      color: "rgba(255, 255, 255, 0.65)",
+                      color: "rgba(255, 255, 255, 0.92)",
                       fontFamily: F.semibold,
                       fontSize: 22,
                       letterSpacing: 0.6,
                       textAlign: "center",
-                      textShadowColor: "rgba(0, 0, 0, 0.65)",
+                      textShadowColor: "rgba(0, 0, 0, 0.85)",
                       textShadowOffset: { width: 0, height: 1 },
-                      textShadowRadius: 4,
+                      textShadowRadius: 6,
                     }}
                   >
                     {domain}
