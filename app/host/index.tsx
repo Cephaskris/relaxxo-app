@@ -61,7 +61,7 @@ export default function HotelDashboard() {
       </Row>
       <T v="title" style={{ marginTop: 18 }}>{h.name}</T>
 
-      <Card style={{ marginTop: 18, minHeight: 180, justifyContent: "space-between", backgroundColor: online ? C.lime : C.ink, padding: 22, gap: 10 }}>
+      <Card style={{ marginTop: 18, minHeight: 180, justifyContent: "space-between", backgroundColor: online ? C.lime : C.brand, padding: 22, gap: 10 }}>
         <T v="label" style={{ color: online ? C.ink : "#BDBDB7" }}>Visibility</T>
         <T style={{ fontFamily: F.regular, fontSize: 52, lineHeight: 58, letterSpacing: -1.6, color: online ? C.ink : "#FFFFFF" }}>{online ? "Online" : "Offline"}</T>
         <T style={{ color: online ? C.ink : "#BDBDB7" }}>

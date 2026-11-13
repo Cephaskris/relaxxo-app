@@ -91,7 +91,7 @@ export function Btn({
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
-  const bg = tone === "lime" ? C.lime : tone === "dark" ? C.ink : C.card;
+  const bg = tone === "lime" ? C.lime : tone === "dark" ? C.brand : C.card;
   const fg = tone === "dark" ? "#FFFFFF" : C.ink;
   return (
     <Pressable
@@ -112,7 +112,7 @@ export function Btn({
         <Text style={{ fontFamily: F.medium, fontSize: 16, color: fg }}>{label}</Text>
       )}
       {arrow && !loading ? (
-        <View style={[s.arrow, { backgroundColor: tone === "dark" ? C.lime : C.ink }]}>
+        <View style={[s.arrow, { backgroundColor: tone === "dark" ? C.lime : C.brand }]}>
           <ArrowRight size={22} strokeWidth={ICON.stroke} color={tone === "dark" ? C.ink : "#FFFFFF"} />
         </View>
       ) : null}
@@ -133,7 +133,7 @@ export function CircleBtn({
   tone?: "light" | "dark" | "lime";
   size?: number;
 }) {
-  const bg = tone === "light" ? C.card : tone === "dark" ? C.ink : C.lime;
+  const bg = tone === "light" ? C.card : tone === "dark" ? C.brand : C.lime;
   return (
     <Pressable
       accessibilityRole="button"
@@ -174,7 +174,7 @@ export function Chip({ label, active, onPress }: { label: string; active?: boole
         height: 44,
         paddingHorizontal: 18,
         borderRadius: R.pill,
-        backgroundColor: active ? C.ink : C.card,
+        backgroundColor: active ? C.brand : C.card,
         alignItems: "center",
         justifyContent: "center",
       }}
@@ -197,7 +197,7 @@ export function Pill({ label, tone = "light", icon }: { label: string; tone?: "l
 // ---------- Containers & inputs ----------
 
 export function Card({ children, style, dark }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; dark?: boolean }) {
-  return <View style={[{ backgroundColor: dark ? C.ink : C.card, borderRadius: R.card, padding: 20 }, style]}>{children}</View>;
+  return <View style={[{ backgroundColor: dark ? C.brand : C.card, borderRadius: R.card, padding: 20 }, style]}>{children}</View>;
 }
 
 export function Field({ label, error, style, ...p }: TextInputProps & { label: string; error?: string | null }) {

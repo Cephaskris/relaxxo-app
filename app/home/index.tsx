@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Image, Pressable, ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { useConvexAuth, useQuery } from "convex/react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -84,27 +84,33 @@ export default function ClientHome() {
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={["top"]}>
       <View style={{ flex: 1, width: "100%", maxWidth: 560, alignSelf: "center" }}>
         <Row style={{ justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 12 }}>
-          <Pressable
-            onPress={() => {
-              setStateFilter("");
-              setStateDropdownOpen(true);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Choose Nigerian State"
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 6,
-              height: 52,
-              paddingHorizontal: 16,
-              borderRadius: 26,
-              backgroundColor: C.card,
-            }}
-          >
-            <MapPin size={20} strokeWidth={ICON.stroke} color={C.ink} />
-            <T style={{ fontFamily: F.medium, fontSize: 16 }}>{loc.city}</T>
-            <ChevronDown size={18} strokeWidth={ICON.stroke} color={C.ink} />
-          </Pressable>
+          <Row gap={10}>
+            <Image
+              source={require("../../assets/relaxxo-ng-logo.jpg")}
+              style={{ width: 42, height: 42, borderRadius: 12 }}
+            />
+            <Pressable
+              onPress={() => {
+                setStateFilter("");
+                setStateDropdownOpen(true);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Choose Nigerian State"
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+                height: 52,
+                paddingHorizontal: 16,
+                borderRadius: 26,
+                backgroundColor: C.card,
+              }}
+            >
+              <MapPin size={20} strokeWidth={ICON.stroke} color={C.brand} />
+              <T style={{ fontFamily: F.medium, fontSize: 16 }}>{loc.city}</T>
+              <ChevronDown size={18} strokeWidth={ICON.stroke} color={C.ink} />
+            </Pressable>
+          </Row>
           <Row gap={8}>
             {!isAuthenticated ? (
               <Pressable

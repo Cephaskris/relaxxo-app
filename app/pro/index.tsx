@@ -59,7 +59,7 @@ export default function TherapistDashboard() {
       </Row>
       <T v="title" style={{ marginTop: 18 }}>Hi, {me.name.split(" ")[0]}</T>
 
-      <Card dark={!online} style={{ marginTop: 18, minHeight: 196, justifyContent: "space-between", backgroundColor: online ? C.lime : C.ink, padding: 22, gap: 10 }}>
+      <Card dark={!online} style={{ marginTop: 18, minHeight: 196, justifyContent: "space-between", backgroundColor: online ? C.lime : C.brand, padding: 22, gap: 10 }}>
         <Row style={{ justifyContent: "space-between" }}>
           <T v="label" style={{ color: online ? C.ink : "#BDBDB7" }}>Status</T>
           <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: online ? C.success : "#6B6E74" }} />
