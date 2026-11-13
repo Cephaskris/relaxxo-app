@@ -6,7 +6,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "backgroundColor": "#EDEDEA",
+    "backgroundColor": "#F6F4EF",
     "newArchEnabled": true,
     "android": {
       "package": "com.relaxxo.app",
@@ -54,7 +54,7 @@
     },
     "icon": "./assets/icon.png",
     "splash": {
-      "backgroundColor": "#EDEDEA",
+      "backgroundColor": "#F6F4EF",
       "image": "./assets/icon.png",
       "resizeMode": "contain"
     }

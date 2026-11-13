@@ -1,15 +1,16 @@
-// Relaxxo design tokens — light grey ground, white cards, black accents, golden yellow for primary actions.
+// Relaxxo design tokens — warm alabaster ground, crisp white cards, deep forest emerald & charcoal ink, golden amber for primary actions.
 export const C = {
-  bg: "#EDEDEA",
+  bg: "#F6F4EF",
   card: "#FFFFFF",
-  ink: "#141414",
-  muted: "#6B6B66",
-  line: "#D9D9D4",
-  soft: "#F4F4F1",
+  ink: "#161A17",
+  brand: "#0D4D2B",
+  muted: "#636B65",
+  line: "#E1E3DC",
+  soft: "#E8EDE9",
   lime: "#F9BD14",
-  nav: "#DCDCD7",
+  nav: "#E4E6DF",
   danger: "#B4381F",
-  success: "#1F7A3D",
+  success: "#0D4D2B",
   placeholder: ["#8A6E5C", "#5C6E62", "#6B5C78", "#7A6A50"],
 };
 
