@@ -78,9 +78,9 @@ export default function HotelDashboard() {
       <T v="title" style={{ marginTop: 18 }}>{h.name}</T>
 
       <Card style={{ marginTop: 18, minHeight: 180, justifyContent: "space-between", backgroundColor: online ? colors.lime : colors.brand, padding: 22, gap: 10 }}>
-        <T v="label" style={{ color: online ? colors.onLime : "#D8CCE8" }}>Visibility</T>
+        <T v="label" style={{ color: online ? colors.onLime : "#B6DCD9" }}>Visibility</T>
         <T style={{ fontFamily: F.regular, fontSize: 52, lineHeight: 58, letterSpacing: -1.6, color: online ? colors.onLime : "#FFFFFF" }}>{online ? "Online" : "Offline"}</T>
-        <T style={{ color: online ? colors.onLime : "#D8CCE8" }}>
+        <T style={{ color: online ? colors.onLime : "#B6DCD9" }}>
           {online ? `${timeLeft(h.onlineUntil, now)} left · ${liveRooms} room types showing` : "Guests can't see your rooms right now"}
         </T>
       </Card>

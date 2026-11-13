@@ -34,8 +34,8 @@ export function AccountScreen({ extra }: { extra?: React.ReactNode }) {
         <Card style={{ marginTop: 20, gap: 10 }}>
           <T v="label">Appearance</T>
           <Row>
-            <Chip label="Light Luxury" active={mode === "light"} onPress={() => setMode("light")} />
-            <Chip label="Full Dark Midnight" active={mode === "dark"} onPress={() => setMode("dark")} />
+            <Chip label="Light Spa" active={mode === "light"} onPress={() => setMode("light")} />
+            <Chip label="Deep Teal" active={mode === "dark"} onPress={() => setMode("dark")} />
           </Row>
         </Card>
       </Screen>
@@ -99,8 +99,8 @@ export function AccountScreen({ extra }: { extra?: React.ReactNode }) {
       <Card style={{ marginTop: 20, gap: 10 }}>
         <T v="label">Appearance</T>
         <Row>
-          <Chip label="Light Luxury" active={mode === "light"} onPress={() => setMode("light")} />
-          <Chip label="Full Dark Midnight" active={mode === "dark"} onPress={() => setMode("dark")} />
+          <Chip label="Light Spa" active={mode === "light"} onPress={() => setMode("light")} />
+          <Chip label="Deep Teal" active={mode === "dark"} onPress={() => setMode("dark")} />
         </Row>
       </Card>
 

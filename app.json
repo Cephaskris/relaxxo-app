@@ -6,13 +6,13 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "backgroundColor": "#F6F4EF",
+    "backgroundColor": "#E7FBFA",
     "newArchEnabled": true,
     "android": {
       "package": "com.relaxxo.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFBE0B"
+        "backgroundColor": "#2EC4B6"
       },
       "permissions": [
         "ACCESS_COARSE_LOCATION",
@@ -54,7 +54,7 @@
     },
     "icon": "./assets/icon.png",
     "splash": {
-      "backgroundColor": "#F6F4EF",
+      "backgroundColor": "#E7FBFA",
       "image": "./assets/icon.png",
       "resizeMode": "contain"
     }
