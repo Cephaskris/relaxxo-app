@@ -1,5 +1,5 @@
-// Relaxxo design tokens — Light Luxury (Warm Cream + Midnight Purple + Warm Gold)
-// and Full Dark Midnight (Midnight Purple #2E1A47 + Deep Plum + Warm Gold #F59E51).
+// Relaxxo design tokens — Light Luxury (Warm Cream + Midnight Purple + #FFBE0B)
+// and Full Dark Midnight (Midnight Purple #2E1A47 + Deep Plum + #FFBE0B).
 
 export type ThemeMode = "light" | "dark";
 
@@ -12,7 +12,7 @@ export const PALETTES = {
     muted: "#6E5B85",
     line: "#EAE2F0",
     soft: "#F2ECF7",
-    lime: "#F59E51",
+    lime: "#FFBE0B",
     goldSoft: "#F8D299",
     nav: "#EDE6F3",
     danger: "#B4381F",
@@ -29,7 +29,7 @@ export const PALETTES = {
     muted: "#CBBCE0",
     line: "#4D2F70",
     soft: "#3A0353",
-    lime: "#F59E51",
+    lime: "#FFBE0B",
     goldSoft: "#F8D299",
     nav: "#211235",
     danger: "#F87171",
