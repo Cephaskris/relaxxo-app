@@ -59,7 +59,7 @@ export default function ChooseRole() {
               accessibilityRole="radio"
               accessibilityState={{ checked: active }}
               style={{
-                backgroundColor: active ? C.ink : C.card,
+                backgroundColor: active ? C.brand : C.card,
                 borderRadius: 24,
                 padding: 18,
                 flexDirection: "row",
@@ -68,11 +68,11 @@ export default function ChooseRole() {
               }}
             >
               <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: active ? C.lime : C.soft, alignItems: "center", justifyContent: "center" }}>
-                <o.Icon size={ICON.size} strokeWidth={ICON.stroke} color={C.ink} />
+                <o.Icon size={ICON.size} strokeWidth={ICON.stroke} color={active ? C.onLime : C.ink} />
               </View>
               <View style={{ flex: 1 }}>
-                <T style={{ fontFamily: F.medium, fontSize: 17, color: active ? "#FFFFFF" : C.ink }}>{o.title}</T>
-                <T v="small" style={{ color: active ? "#C9C9C4" : C.muted }}>{o.sub}</T>
+                <T style={{ fontFamily: F.medium, fontSize: 17, color: active ? C.onBrand : C.ink }}>{o.title}</T>
+                <T v="small" style={{ color: active ? "#E7FBFA" : C.muted }}>{o.sub}</T>
               </View>
             </Pressable>
           );

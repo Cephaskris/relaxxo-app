@@ -246,7 +246,7 @@ export function ErrorNote({ text }: { text?: string | null }) {
   const { colors } = useTheme();
   if (!text) return null;
   return (
-    <View style={{ backgroundColor: "#FBE9E4", borderRadius: 16, padding: 14 }}>
+    <View style={{ backgroundColor: colors.dangerSoft, borderRadius: 16, padding: 14 }}>
       <T style={{ color: colors.danger, fontSize: 14 }}>{text}</T>
     </View>
   );

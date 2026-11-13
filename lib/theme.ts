@@ -9,34 +9,38 @@ export const PALETTES = {
     card: "#FFFFFF",
     ink: "#0B3D3E",
     brand: "#0B3D3E",
-    muted: "#4E7475",
-    line: "#CDEBE9",
+    muted: "#385F60",
+    line: "#BDE3E0",
     soft: "#D8F5F3",
     lime: "#2EC4B6",
-    goldSoft: "#2EC4B6",
+    accent: "#0F7A71",
+    goldSoft: "#0B3D3E",
     nav: "#D3F1EF",
     danger: "#B4381F",
+    dangerSoft: "#FBE9E4",
     success: "#0B3D3E",
     onLime: "#0B3D3E",
     onBrand: "#FFFFFF",
-    placeholder: ["#0B3D3E", "#2EC4B6", "#1A5E60", "#4E7475"],
+    placeholder: ["#0B3D3E", "#2EC4B6", "#1A5E60", "#385F60"],
   },
   dark: {
-    bg: "#0B3D3E",
-    card: "#124E50",
+    bg: "#072B2C",
+    card: "#104749",
     ink: "#E7FBFA",
-    brand: "#176062",
-    muted: "#9ED6D3",
-    line: "#1B6A6C",
-    soft: "#124E50",
+    brand: "#1E7375",
+    muted: "#A8DFDC",
+    line: "#226F71",
+    soft: "#185D5F",
     lime: "#2EC4B6",
+    accent: "#2EC4B6",
     goldSoft: "#E7FBFA",
-    nav: "#072C2D",
+    nav: "#052122",
     danger: "#F87171",
+    dangerSoft: "#3F1D1D",
     success: "#2EC4B6",
     onLime: "#0B3D3E",
     onBrand: "#FFFFFF",
-    placeholder: ["#176062", "#2EC4B6", "#0B3D3E", "#1B6A6C"],
+    placeholder: ["#1E7375", "#2EC4B6", "#0B3D3E", "#185D5F"],
   },
 } as const;
 
@@ -49,9 +53,11 @@ export type ThemeColors = {
   line: string;
   soft: string;
   lime: string;
+  accent: string;
   goldSoft: string;
   nav: string;
   danger: string;
+  dangerSoft: string;
   success: string;
   onLime: string;
   onBrand: string;

@@ -113,13 +113,13 @@ export default function Chat() {
                 style={{
                   alignSelf: item.mine ? "flex-end" : "flex-start",
                   maxWidth: "80%",
-                  backgroundColor: item.mine ? C.ink : C.card,
+                  backgroundColor: item.mine ? C.brand : C.card,
                   borderRadius: 22,
                   paddingHorizontal: 16,
                   paddingVertical: 10,
                 }}
               >
-                <T style={{ color: item.mine ? "#FFFFFF" : C.ink }}>{item.body}</T>
+                <T style={{ color: item.mine ? C.onBrand : C.ink }}>{item.body}</T>
               </View>
             )}
           />
@@ -130,12 +130,12 @@ export default function Chat() {
                 value={text}
                 onChangeText={setText}
                 placeholder="Message"
-                placeholderTextColor="#8A8A84"
+                placeholderTextColor={C.muted}
                 maxLength={1000}
                 multiline
                 style={{ flex: 1, minHeight: 52, maxHeight: 120, backgroundColor: C.card, borderRadius: 26, paddingHorizontal: 18, paddingTop: 15, fontFamily: F.regular, fontSize: 16, color: C.ink }}
               />
-              <CircleBtn size={56} tone="lime" label="Send" onPress={onSend} icon={<Send size={22} strokeWidth={ICON.stroke} color={C.ink} />} />
+              <CircleBtn size={56} tone="lime" label="Send" onPress={onSend} icon={<Send size={22} strokeWidth={ICON.stroke} color={C.onLime} />} />
             </Row>
           ) : (
             <T v="label" style={{ textAlign: "center", padding: 16 }}>This chat has closed.</T>

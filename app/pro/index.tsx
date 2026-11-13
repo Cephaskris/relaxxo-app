@@ -54,11 +54,11 @@ export default function TherapistDashboard() {
         <Row gap={8}>
           <CircleBtn
             size={44}
-            label={mode === "dark" ? "Switch to Light Luxury" : "Switch to Full Dark Midnight"}
+            label={mode === "dark" ? "Switch to Light Spa" : "Switch to Deep Teal"}
             onPress={toggle}
             icon={
               mode === "dark" ? (
-                <Sun size={18} strokeWidth={ICON.stroke} color={colors.lime} />
+                <Sun size={18} strokeWidth={ICON.stroke} color={colors.accent} />
               ) : (
                 <Moon size={18} strokeWidth={ICON.stroke} color={colors.ink} />
               )
@@ -77,13 +77,13 @@ export default function TherapistDashboard() {
 
       <Card dark={!online} style={{ marginTop: 18, minHeight: 196, justifyContent: "space-between", backgroundColor: online ? colors.lime : colors.brand, padding: 22, gap: 10 }}>
         <Row style={{ justifyContent: "space-between" }}>
-          <T v="label" style={{ color: online ? colors.onLime : "#B6DCD9" }}>Status</T>
+          <T v="label" style={{ color: online ? colors.onLime : "#E7FBFA" }}>Status</T>
           <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: online ? colors.success : "#2EC4B6" }} />
         </Row>
-        <T style={{ fontFamily: F.regular, fontSize: 52, lineHeight: 58, letterSpacing: -1.6, color: online ? colors.onLime : "#FFFFFF" }}>
+        <T style={{ fontFamily: F.regular, fontSize: 52, lineHeight: 58, letterSpacing: -1.6, color: online ? colors.onLime : colors.onBrand }}>
           {online ? "Online" : "Offline"}
         </T>
-        <T style={{ fontFamily: online ? F.medium : F.regular, color: online ? colors.onLime : "#B6DCD9" }}>
+        <T style={{ fontFamily: online ? F.medium : F.regular, color: online ? colors.onLime : "#E7FBFA" }}>
           {online
             ? `⏱ ${timeLeft(d.onlineUntil, now)} left · clients in ${d.area} can find you`
             : "Clients can't see you right now"}

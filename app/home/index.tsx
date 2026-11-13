@@ -108,7 +108,7 @@ export default function ClientHome() {
                 backgroundColor: colors.card,
               }}
             >
-              <MapPin size={20} strokeWidth={ICON.stroke} color={colors.lime} />
+              <MapPin size={20} strokeWidth={ICON.stroke} color={colors.accent} />
               <T style={{ fontFamily: F.medium, fontSize: 16 }}>{loc.city}</T>
               <ChevronDown size={18} strokeWidth={ICON.stroke} color={colors.ink} />
             </Pressable>
@@ -131,11 +131,11 @@ export default function ClientHome() {
               </Pressable>
             ) : null}
             <CircleBtn
-              label={themeMode === "dark" ? "Switch to Light Luxury" : "Switch to Full Dark Midnight"}
+              label={themeMode === "dark" ? "Switch to Light Spa" : "Switch to Deep Teal"}
               onPress={toggle}
               icon={
                 themeMode === "dark" ? (
-                  <Sun size={20} strokeWidth={ICON.stroke} color={colors.lime} />
+                  <Sun size={20} strokeWidth={ICON.stroke} color={colors.accent} />
                 ) : (
                   <Moon size={20} strokeWidth={ICON.stroke} color={colors.ink} />
                 )

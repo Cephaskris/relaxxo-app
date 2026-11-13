@@ -5,7 +5,8 @@ import { useConvexAuth, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Screen, T, Row, Btn, Card, Loading } from "@/components/ui";
 import { Packs } from "@/components/Packs";
-import { C, F } from "@/lib/theme";
+import { useTheme } from "@/components/ThemeProvider";
+import { F } from "@/lib/theme";
 import { ago } from "@/lib/util";
 
 const REASON: Record<string, string> = {
@@ -19,6 +20,7 @@ const REASON: Record<string, string> = {
 
 export function WalletScreen() {
   const { isAuthenticated } = useConvexAuth();
+  const { colors } = useTheme();
   const w = useQuery(api.wallet.overview, isAuthenticated ? {} : "skip");
   if (!isAuthenticated)
     return (
@@ -33,17 +35,17 @@ export function WalletScreen() {
     <Screen>
       <T v="label">Wallet · Connection Credits (CC)</T>
       <Row style={{ marginTop: 10 }} gap={12}>
-        <Card style={{ flex: 1, backgroundColor: C.lime, gap: 6, paddingVertical: 22 }}>
-          <T v="label" style={{ color: C.ink }}>Balance</T>
-          <T style={{ fontFamily: F.regular, fontSize: 48, lineHeight: 54, letterSpacing: -1.5, marginVertical: 2 }}>{w.credits}</T>
-          <T v="small" style={{ color: C.ink }}>CC</T>
+        <Card style={{ flex: 1, backgroundColor: colors.lime, gap: 6, paddingVertical: 22 }}>
+          <T v="label" style={{ color: colors.onLime }}>Balance</T>
+          <T style={{ fontFamily: F.regular, fontSize: 48, lineHeight: 54, letterSpacing: -1.5, color: colors.onLime, marginVertical: 2 }}>{w.credits}</T>
+          <T v="small" style={{ color: colors.onLime }}>CC</T>
         </Card>
         <Card dark style={{ flex: 1, gap: 6, paddingVertical: 22 }}>
-          <T v="label" style={{ color: "#BDBDB7" }}>Used this month</T>
-          <T style={{ fontFamily: F.regular, fontSize: 48, lineHeight: 54, letterSpacing: -1.5, color: "#FFFFFF", marginVertical: 2 }}>
+          <T v="label" style={{ color: "#E7FBFA" }}>Used this month</T>
+          <T style={{ fontFamily: F.regular, fontSize: 48, lineHeight: 54, letterSpacing: -1.5, color: colors.onBrand, marginVertical: 2 }}>
             {w.history.filter((h) => h.delta < 0 && h.at > Date.now() - 30 * 86400000).reduce((n, h) => n - h.delta, 0)}
           </T>
-          <T v="small" style={{ color: "#BDBDB7" }}>CC</T>
+          <T v="small" style={{ color: "#E7FBFA" }}>CC</T>
         </Card>
       </Row>
 
@@ -54,12 +56,12 @@ export function WalletScreen() {
       <View style={{ gap: 8 }}>
         {w.history.length === 0 ? <T v="label">No activity yet.</T> : null}
         {w.history.map((h) => (
-          <Row key={h._id} style={{ backgroundColor: C.card, borderRadius: 20, padding: 14, justifyContent: "space-between" }}>
+          <Row key={h._id} style={{ backgroundColor: colors.card, borderRadius: 20, padding: 14, justifyContent: "space-between" }}>
             <View style={{ flex: 1 }}>
               <T>{REASON[h.reason] ?? h.reason}</T>
               <T v="small">{h.note ? `${h.note} · ` : ""}{ago(h.at)} ago</T>
             </View>
-            <T style={{ fontFamily: F.medium, color: h.delta > 0 ? C.success : C.ink }}>
+            <T style={{ fontFamily: F.medium, color: h.delta > 0 ? colors.accent : colors.ink }}>
               {h.delta > 0 ? "+" : ""}{h.delta} CC
             </T>
           </Row>

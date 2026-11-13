@@ -160,8 +160,8 @@ export default function TherapistsInArea() {
             </View>
           ) : (
             <View {...swipe.panHandlers}>
-              <View style={{ position: "absolute", left: 44, right: 36, top: -36, height: 80, borderRadius: 26, backgroundColor: "#CFCFCA", transform: [{ rotate: "3deg" }] }} />
-              <View style={{ position: "absolute", left: 24, right: 20, top: -18, height: 80, borderRadius: 26, backgroundColor: "#DEDED9", transform: [{ rotate: "-1.5deg" }] }} />
+              <View style={{ position: "absolute", left: 44, right: 36, top: -36, height: 80, borderRadius: 26, backgroundColor: C.line, transform: [{ rotate: "3deg" }] }} />
+              <View style={{ position: "absolute", left: 24, right: 20, top: -18, height: 80, borderRadius: 26, backgroundColor: C.soft, transform: [{ rotate: "-1.5deg" }] }} />
               <Pressable
                 onPress={() => router.push(`/therapist/${t._id}`)}
                 accessibilityRole="button"

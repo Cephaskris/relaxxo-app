@@ -9,14 +9,14 @@ export function Stat({ label, value, tone }: { label: string; value: string | nu
       style={{
         flexGrow: 1,
         flexBasis: 200,
-        backgroundColor: tone === "lime" ? C.lime : tone === "dark" ? C.ink : C.card,
+        backgroundColor: tone === "lime" ? C.lime : tone === "dark" ? C.brand : C.card,
         borderRadius: 24,
         padding: 20,
         gap: 6,
       }}
     >
-      <T v="label" style={{ color: tone === "dark" ? "#BDBDB7" : tone === "lime" ? C.ink : C.muted }}>{label}</T>
-      <T style={{ fontFamily: F.regular, fontSize: 32, letterSpacing: -1, color: tone === "dark" ? "#FFFFFF" : C.ink }}>{value}</T>
+      <T v="label" style={{ color: tone === "dark" ? "#E7FBFA" : tone === "lime" ? C.onLime : C.muted }}>{label}</T>
+      <T style={{ fontFamily: F.regular, fontSize: 32, letterSpacing: -1, color: tone === "dark" ? C.onBrand : tone === "lime" ? C.onLime : C.ink }}>{value}</T>
     </View>
   );
 }
@@ -50,10 +50,11 @@ export function Thumbs({ urls, size = 96 }: { urls: (string | null)[]; size?: nu
 }
 
 export function SmallBtn({ label, onPress, tone = "light" }: { label: string; onPress: () => void; tone?: "light" | "dark" | "lime" | "danger" }) {
-  const bg = tone === "dark" ? C.ink : tone === "lime" ? C.lime : tone === "danger" ? "#F6DED7" : C.soft;
+  const bg = tone === "dark" ? C.brand : tone === "lime" ? C.lime : tone === "danger" ? C.dangerSoft : C.soft;
+  const fg = tone === "dark" ? C.onBrand : tone === "lime" ? C.onLime : tone === "danger" ? C.danger : C.ink;
   return (
     <Pressable onPress={onPress} style={{ height: 40, paddingHorizontal: 16, borderRadius: 20, backgroundColor: bg, justifyContent: "center" }}>
-      <T style={{ fontSize: 14, fontFamily: F.medium, color: tone === "dark" ? "#FFFFFF" : tone === "danger" ? C.danger : C.ink }}>{label}</T>
+      <T style={{ fontSize: 14, fontFamily: F.medium, color: fg }}>{label}</T>
     </Pressable>
   );
 }

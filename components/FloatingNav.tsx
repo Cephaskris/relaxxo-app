@@ -22,6 +22,8 @@ export function makeFloatingNav(items: NavItem[]) {
             height: 80,
             borderRadius: 40,
             backgroundColor: colors.nav,
+            borderWidth: 1,
+            borderColor: colors.line,
             flexDirection: "row",
             alignItems: "center",
             paddingHorizontal: 8,

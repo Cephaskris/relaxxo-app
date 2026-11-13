@@ -56,11 +56,11 @@ export default function HotelDashboard() {
         <Row gap={8}>
           <CircleBtn
             size={44}
-            label={mode === "dark" ? "Switch to Light Luxury" : "Switch to Full Dark Midnight"}
+            label={mode === "dark" ? "Switch to Light Spa" : "Switch to Deep Teal"}
             onPress={toggle}
             icon={
               mode === "dark" ? (
-                <Sun size={18} strokeWidth={ICON.stroke} color={colors.lime} />
+                <Sun size={18} strokeWidth={ICON.stroke} color={colors.accent} />
               ) : (
                 <Moon size={18} strokeWidth={ICON.stroke} color={colors.ink} />
               )
@@ -78,9 +78,9 @@ export default function HotelDashboard() {
       <T v="title" style={{ marginTop: 18 }}>{h.name}</T>
 
       <Card style={{ marginTop: 18, minHeight: 180, justifyContent: "space-between", backgroundColor: online ? colors.lime : colors.brand, padding: 22, gap: 10 }}>
-        <T v="label" style={{ color: online ? colors.onLime : "#B6DCD9" }}>Visibility</T>
-        <T style={{ fontFamily: F.regular, fontSize: 52, lineHeight: 58, letterSpacing: -1.6, color: online ? colors.onLime : "#FFFFFF" }}>{online ? "Online" : "Offline"}</T>
-        <T style={{ color: online ? colors.onLime : "#B6DCD9" }}>
+        <T v="label" style={{ color: online ? colors.onLime : "#E7FBFA" }}>Visibility</T>
+        <T style={{ fontFamily: F.regular, fontSize: 52, lineHeight: 58, letterSpacing: -1.6, color: online ? colors.onLime : colors.onBrand }}>{online ? "Online" : "Offline"}</T>
+        <T style={{ color: online ? colors.onLime : "#E7FBFA" }}>
           {online ? `${timeLeft(h.onlineUntil, now)} left · ${liveRooms} room types showing` : "Guests can't see your rooms right now"}
         </T>
       </Card>
