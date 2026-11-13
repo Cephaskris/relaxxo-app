@@ -1,4 +1,4 @@
-// Relaxxo design tokens — light grey ground, white cards, black accents, lime for primary actions.
+// Relaxxo design tokens — light grey ground, white cards, black accents, golden yellow for primary actions.
 export const C = {
   bg: "#EDEDEA",
   card: "#FFFFFF",
@@ -6,7 +6,7 @@ export const C = {
   muted: "#6B6B66",
   line: "#D9D9D4",
   soft: "#F4F4F1",
-  lime: "#D7F24A",
+  lime: "#F9BD14",
   nav: "#DCDCD7",
   danger: "#B4381F",
   success: "#1F7A3D",

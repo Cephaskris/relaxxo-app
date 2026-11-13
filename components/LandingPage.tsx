@@ -124,7 +124,13 @@ export function LandingPage() {
             <View style={{ flex: 1, width: "100%", maxWidth: 540, alignSelf: "center", padding: 24, justifyContent: "space-between" }}>
               {/* Top Bar */}
               <Row style={{ justifyContent: "space-between" }}>
-                <T style={{ fontFamily: F.semibold, fontSize: 22, color: "#FFFFFF", letterSpacing: -0.5 }}>Relaxxo</T>
+                <Row gap={10}>
+                  <Image
+                    source={require("../assets/relaxxo-ng-logo.jpg")}
+                    style={{ width: 40, height: 40, borderRadius: 12 }}
+                  />
+                  <T style={{ fontFamily: F.semibold, fontSize: 22, color: "#FFFFFF", letterSpacing: -0.5 }}>Relaxxo</T>
+                </Row>
                 <Pressable
                   onPress={() => router.push(primaryDestination() as never)}
                   style={{
@@ -211,6 +217,10 @@ export function LandingPage() {
             }}
           >
             <Row gap={14}>
+              <Image
+                source={require("../assets/relaxxo-ng-logo.jpg")}
+                style={{ width: 42, height: 42, borderRadius: 12 }}
+              />
               <T style={{ fontFamily: F.semibold, fontSize: 24, letterSpacing: -0.6 }}>Relaxxo</T>
               <View style={{ backgroundColor: C.lime, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20 }}>
                 <T style={{ fontFamily: F.medium, fontSize: 12 }}>Lagos · Abuja</T>

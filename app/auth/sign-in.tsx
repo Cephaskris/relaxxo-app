@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { View, Pressable } from "react-native";
+import { Image, View, Pressable } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { Screen, T, Field, Btn, BackBtn, ErrorNote, Chip } from "@/components/ui";
+import { Screen, T, Field, Btn, BackBtn, ErrorNote, Chip, Row } from "@/components/ui";
 import { normalizePhone, errorMessage } from "@/lib/util";
 import { C } from "@/lib/theme";
 
@@ -57,7 +57,13 @@ export default function SignIn() {
     <Screen padBottom={40}>
       <BackBtn />
       <View style={{ marginTop: 24, gap: 10 }}>
-        <T v="label">Relaxxo</T>
+        <Row gap={10}>
+          <Image
+            source={require("../../assets/relaxxo-ng-logo.jpg")}
+            style={{ width: 44, height: 44, borderRadius: 14 }}
+          />
+          <T v="label" style={{ fontSize: 15 }}>RELAXXO.NG</T>
+        </Row>
         <T v="display">
           {flow === "signIn" ? "Welcome\nback" : "Create your\naccount"}
         </T>
