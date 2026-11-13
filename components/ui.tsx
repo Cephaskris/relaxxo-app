@@ -15,7 +15,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowRight, ArrowLeft } from "lucide-react-native";
 import { router } from "expo-router";
-import { C, F, R, ICON } from "@/lib/theme";
+import { useTheme } from "@/components/ThemeProvider";
+import { F, R, ICON } from "@/lib/theme";
 
 // ---------- Layout ----------
 
@@ -28,8 +29,9 @@ export function Screen({
   scroll?: boolean;
   padBottom?: number;
 }) {
+  const { colors } = useTheme();
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={["top"]}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={["top"]}>
       {scroll ? (
         <ScrollView
           contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 12, paddingBottom: padBottom }}
@@ -58,18 +60,20 @@ const variants: Record<Variant, object> = {
   title: { fontFamily: F.regular, fontSize: 32, lineHeight: 36, letterSpacing: -0.9 },
   h2: { fontFamily: F.medium, fontSize: 20, lineHeight: 26, letterSpacing: -0.3 },
   body: { fontFamily: F.regular, fontSize: 15, lineHeight: 22 },
-  label: { fontFamily: F.regular, fontSize: 13, lineHeight: 18, color: C.muted },
+  label: { fontFamily: F.regular, fontSize: 13, lineHeight: 18 },
   value: { fontFamily: F.medium, fontSize: 24, lineHeight: 28, letterSpacing: -0.4 },
-  small: { fontFamily: F.regular, fontSize: 12, lineHeight: 16, color: C.muted },
+  small: { fontFamily: F.regular, fontSize: 12, lineHeight: 16 },
 };
 
 export function T({ v = "body", style, ...p }: TextProps & { v?: Variant }) {
+  const { colors } = useTheme();
   const flat = StyleSheet.flatten(style);
   const autoLineHeight =
     flat && typeof flat.fontSize === "number" && flat.lineHeight === undefined
       ? { lineHeight: Math.round(flat.fontSize * 1.18) }
       : null;
-  return <Text {...p} style={[{ color: C.ink }, variants[v], style, autoLineHeight]} />;
+  const mutedColor = v === "label" || v === "small" ? colors.muted : colors.ink;
+  return <Text {...p} style={[{ color: mutedColor }, variants[v], style, autoLineHeight]} />;
 }
 
 // ---------- Buttons ----------
@@ -91,8 +95,9 @@ export function Btn({
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
-  const bg = tone === "lime" ? C.lime : tone === "dark" ? C.brand : C.card;
-  const fg = tone === "dark" ? "#FFFFFF" : C.ink;
+  const { colors } = useTheme();
+  const bg = tone === "lime" ? colors.lime : tone === "dark" ? colors.brand : colors.card;
+  const fg = tone === "dark" ? colors.onBrand : tone === "lime" ? colors.onLime : colors.ink;
   return (
     <Pressable
       accessibilityRole="button"
@@ -112,8 +117,8 @@ export function Btn({
         <Text style={{ fontFamily: F.medium, fontSize: 16, color: fg }}>{label}</Text>
       )}
       {arrow && !loading ? (
-        <View style={[s.arrow, { backgroundColor: tone === "dark" ? C.lime : C.brand }]}>
-          <ArrowRight size={22} strokeWidth={ICON.stroke} color={tone === "dark" ? C.ink : "#FFFFFF"} />
+        <View style={[s.arrow, { backgroundColor: tone === "dark" ? colors.lime : colors.brand }]}>
+          <ArrowRight size={22} strokeWidth={ICON.stroke} color={tone === "dark" ? colors.onLime : colors.onBrand} />
         </View>
       ) : null}
     </Pressable>
@@ -133,7 +138,8 @@ export function CircleBtn({
   tone?: "light" | "dark" | "lime";
   size?: number;
 }) {
-  const bg = tone === "light" ? C.card : tone === "dark" ? C.brand : C.lime;
+  const { colors } = useTheme();
+  const bg = tone === "light" ? colors.card : tone === "dark" ? colors.brand : colors.lime;
   return (
     <Pressable
       accessibilityRole="button"
@@ -155,16 +161,18 @@ export function CircleBtn({
 }
 
 export function BackBtn() {
+  const { colors } = useTheme();
   return (
     <CircleBtn
       label="Back"
       onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
-      icon={<ArrowLeft size={ICON.size} strokeWidth={ICON.stroke} color={C.ink} />}
+      icon={<ArrowLeft size={ICON.size} strokeWidth={ICON.stroke} color={colors.ink} />}
     />
   );
 }
 
 export function Chip({ label, active, onPress }: { label: string; active?: boolean; onPress?: () => void }) {
+  const { colors } = useTheme();
   return (
     <Pressable
       accessibilityRole="button"
@@ -174,22 +182,24 @@ export function Chip({ label, active, onPress }: { label: string; active?: boole
         height: 44,
         paddingHorizontal: 18,
         borderRadius: R.pill,
-        backgroundColor: active ? C.brand : C.card,
+        backgroundColor: active ? colors.brand : colors.card,
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <Text style={{ fontFamily: F.regular, fontSize: 14, color: active ? "#FFFFFF" : C.ink }}>{label}</Text>
+      <Text style={{ fontFamily: F.regular, fontSize: 14, color: active ? colors.onBrand : colors.ink }}>{label}</Text>
     </Pressable>
   );
 }
 
 export function Pill({ label, tone = "light", icon }: { label: string; tone?: "light" | "lime" | "dark"; icon?: React.ReactNode }) {
-  const bg = tone === "lime" ? C.lime : tone === "dark" ? "rgba(20,20,20,0.75)" : C.card;
+  const { colors } = useTheme();
+  const bg = tone === "lime" ? colors.lime : tone === "dark" ? colors.brand : colors.card;
+  const fg = tone === "dark" ? colors.onBrand : tone === "lime" ? colors.onLime : colors.ink;
   return (
     <View style={{ height: 32, paddingHorizontal: 12, borderRadius: 16, backgroundColor: bg, flexDirection: "row", alignItems: "center", gap: 4 }}>
       {icon}
-      <Text style={{ fontFamily: F.medium, fontSize: 13, color: tone === "dark" ? "#FFFFFF" : C.ink }}>{label}</Text>
+      <Text style={{ fontFamily: F.medium, fontSize: 13, color: fg }}>{label}</Text>
     </View>
   );
 }
@@ -197,59 +207,64 @@ export function Pill({ label, tone = "light", icon }: { label: string; tone?: "l
 // ---------- Containers & inputs ----------
 
 export function Card({ children, style, dark }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; dark?: boolean }) {
-  return <View style={[{ backgroundColor: dark ? C.brand : C.card, borderRadius: R.card, padding: 20 }, style]}>{children}</View>;
+  const { colors } = useTheme();
+  return <View style={[{ backgroundColor: dark ? colors.brand : colors.card, borderRadius: R.card, padding: 20 }, style]}>{children}</View>;
 }
 
 export function Field({ label, error, style, ...p }: TextInputProps & { label: string; error?: string | null }) {
+  const { colors } = useTheme();
   return (
     <View style={{ gap: 6 }}>
       <T v="label">{label}</T>
       <TextInput
-        placeholderTextColor="#9A9A94"
+        placeholderTextColor={colors.muted}
         numberOfLines={p.multiline ? (p.numberOfLines ?? 5) : undefined}
         {...p}
         style={[
           {
             minHeight: 56,
             borderRadius: R.field,
-            backgroundColor: C.card,
+            backgroundColor: colors.card,
             borderWidth: 1,
-            borderColor: C.line,
+            borderColor: colors.line,
             paddingHorizontal: 18,
             paddingVertical: p.multiline ? 14 : 0,
             fontFamily: F.regular,
             fontSize: 16,
-            color: C.ink,
+            color: colors.ink,
             textAlignVertical: p.multiline ? "top" : "center",
           },
           style,
         ]}
       />
-      {error ? <T v="small" style={{ color: C.danger }}>{error}</T> : null}
+      {error ? <T v="small" style={{ color: colors.danger }}>{error}</T> : null}
     </View>
   );
 }
 
 export function ErrorNote({ text }: { text?: string | null }) {
+  const { colors } = useTheme();
   if (!text) return null;
   return (
     <View style={{ backgroundColor: "#FBE9E4", borderRadius: 16, padding: 14 }}>
-      <T style={{ color: C.danger, fontSize: 14 }}>{text}</T>
+      <T style={{ color: colors.danger, fontSize: 14 }}>{text}</T>
     </View>
   );
 }
 
 export function Loading() {
+  const { colors } = useTheme();
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: C.bg }}>
-      <ActivityIndicator color={C.ink} />
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.bg }}>
+      <ActivityIndicator color={colors.ink} />
     </View>
   );
 }
 
 export function Placeholder({ seed = 0, style, label = "Photo" }: { seed?: number; style?: StyleProp<ViewStyle>; label?: string }) {
+  const { colors } = useTheme();
   return (
-    <View style={[{ backgroundColor: C.placeholder[seed % C.placeholder.length], alignItems: "center", justifyContent: "center" }, style]}>
+    <View style={[{ backgroundColor: colors.placeholder[seed % colors.placeholder.length], alignItems: "center", justifyContent: "center" }, style]}>
       <T v="small" style={{ color: "rgba(255,255,255,0.85)" }}>{label}</T>
     </View>
   );

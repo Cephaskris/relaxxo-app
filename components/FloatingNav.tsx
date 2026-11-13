@@ -2,7 +2,8 @@ import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { C, F, ICON } from "@/lib/theme";
+import { useTheme } from "@/components/ThemeProvider";
+import { F, ICON } from "@/lib/theme";
 
 export type NavItem = { name: string; label: string; Icon?: React.ComponentType<{ size?: number; strokeWidth?: number; color?: string }>; initials?: string };
 
@@ -10,6 +11,7 @@ export type NavItem = { name: string; label: string; Icon?: React.ComponentType<
 export function makeFloatingNav(items: NavItem[]) {
   return function FloatingNav({ state, navigation }: BottomTabBarProps) {
     const insets = useSafeAreaInsets();
+    const { colors } = useTheme();
     return (
       <View
         pointerEvents="box-none"
@@ -19,13 +21,13 @@ export function makeFloatingNav(items: NavItem[]) {
           style={{
             height: 80,
             borderRadius: 40,
-            backgroundColor: C.nav,
+            backgroundColor: colors.nav,
             flexDirection: "row",
             alignItems: "center",
             paddingHorizontal: 8,
             gap: 10,
             shadowColor: "#000",
-            shadowOpacity: 0.08,
+            shadowOpacity: 0.14,
             shadowRadius: 18,
             shadowOffset: { width: 0, height: 8 },
             elevation: 6,
@@ -51,17 +53,17 @@ export function makeFloatingNav(items: NavItem[]) {
                   width: 64,
                   height: 64,
                   borderRadius: 32,
-                  backgroundColor: focused ? C.lime : isAvatar ? C.ink : C.card,
+                  backgroundColor: focused ? colors.lime : isAvatar ? colors.brand : colors.card,
                   alignItems: "center",
                   justifyContent: "center",
                   borderWidth: isAvatar ? 3 : 0,
-                  borderColor: focused ? C.ink : "#FFFFFF",
+                  borderColor: focused ? colors.onLime : "#FFFFFF",
                 }}
               >
                 {isAvatar ? (
-                  <Text style={{ fontFamily: F.medium, fontSize: 17, color: focused ? C.ink : "#FFFFFF" }}>{item.initials}</Text>
+                  <Text style={{ fontFamily: F.medium, fontSize: 17, color: focused ? colors.onLime : colors.onBrand }}>{item.initials}</Text>
                 ) : item.Icon ? (
-                  <item.Icon size={26} strokeWidth={ICON.stroke} color={C.ink} />
+                  <item.Icon size={26} strokeWidth={ICON.stroke} color={focused ? colors.onLime : colors.ink} />
                 ) : null}
               </Pressable>
             );

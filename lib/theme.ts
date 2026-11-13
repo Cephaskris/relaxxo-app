@@ -1,18 +1,64 @@
-// Relaxxo design tokens — warm alabaster ground, crisp white cards, deep forest emerald & charcoal ink, golden amber for primary actions.
-export const C = {
-  bg: "#F6F4EF",
-  card: "#FFFFFF",
-  ink: "#161A17",
-  brand: "#0D4D2B",
-  muted: "#636B65",
-  line: "#E1E3DC",
-  soft: "#E8EDE9",
-  lime: "#F9BD14",
-  nav: "#E4E6DF",
-  danger: "#B4381F",
-  success: "#0D4D2B",
-  placeholder: ["#8A6E5C", "#5C6E62", "#6B5C78", "#7A6A50"],
+// Relaxxo design tokens — Light Luxury (Warm Cream + Midnight Purple + Warm Gold)
+// and Full Dark Midnight (Midnight Purple #2E1A47 + Deep Plum + Warm Gold #F59E51).
+
+export type ThemeMode = "light" | "dark";
+
+export const PALETTES = {
+  light: {
+    bg: "#FAF7F2",
+    card: "#FFFFFF",
+    ink: "#2E1A47",
+    brand: "#2E1A47",
+    muted: "#6E5B85",
+    line: "#EAE2F0",
+    soft: "#F2ECF7",
+    lime: "#F59E51",
+    goldSoft: "#F8D299",
+    nav: "#EDE6F3",
+    danger: "#B4381F",
+    success: "#2E1A47",
+    onLime: "#2E1A47",
+    onBrand: "#FFFFFF",
+    placeholder: ["#804A8A", "#4D2F70", "#6B5C78", "#7A5498"],
+  },
+  dark: {
+    bg: "#2E1A47",
+    card: "#3C235C",
+    ink: "#FFFFFF",
+    brand: "#4D2F70",
+    muted: "#CBBCE0",
+    line: "#4D2F70",
+    soft: "#3A0353",
+    lime: "#F59E51",
+    goldSoft: "#F8D299",
+    nav: "#211235",
+    danger: "#F87171",
+    success: "#F8D299",
+    onLime: "#2E1A47",
+    onBrand: "#FFFFFF",
+    placeholder: ["#804A8A", "#4D2F70", "#7A5498", "#3A0353"],
+  },
+} as const;
+
+export type ThemeColors = {
+  bg: string;
+  card: string;
+  ink: string;
+  brand: string;
+  muted: string;
+  line: string;
+  soft: string;
+  lime: string;
+  goldSoft: string;
+  nav: string;
+  danger: string;
+  success: string;
+  onLime: string;
+  onBrand: string;
+  placeholder: readonly string[];
 };
+
+export const C: ThemeColors = { ...PALETTES.light };
 
 export const F = {
   light: "Outfit_300Light",

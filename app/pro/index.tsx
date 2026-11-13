@@ -2,16 +2,18 @@ import React, { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 import { router } from "expo-router";
 import { useMutation, useQuery } from "convex/react";
-import { Wallet } from "lucide-react-native";
+import { Wallet, Sun, Moon } from "lucide-react-native";
 import { api } from "@/convex/_generated/api";
-import { Screen, T, Row, Btn, Card, ErrorNote, Loading } from "@/components/ui";
+import { Screen, T, Row, Btn, Card, ErrorNote, Loading, CircleBtn } from "@/components/ui";
 import { Sheet } from "@/components/Sheet";
 import { Packs } from "@/components/Packs";
 import { ProviderStatePicker } from "@/components/ProviderStatePicker";
+import { useTheme } from "@/components/ThemeProvider";
 import { C, F, ICON } from "@/lib/theme";
 import { errorMessage, timeLeft } from "@/lib/util";
 
 export default function TherapistDashboard() {
+  const { mode, colors, toggle } = useTheme();
   const me = useQuery(api.users.me);
   const d = useQuery(api.therapists.dashboard);
   const settings = useQuery(api.settings.publicSettings);
@@ -49,25 +51,39 @@ export default function TherapistDashboard() {
     <Screen>
       <Row style={{ justifyContent: "space-between" }}>
         <ProviderStatePicker kind="therapist" city={d.city} area={d.area} />
-        <Pressable
-          onPress={() => router.push("/pro/wallet")}
-          style={{ height: 44, paddingHorizontal: 14, borderRadius: 22, backgroundColor: C.card, flexDirection: "row", alignItems: "center", gap: 6 }}
-        >
-          <Wallet size={18} strokeWidth={ICON.stroke} color={C.ink} />
-          <T style={{ fontFamily: F.medium }}>{d.credits} CC</T>
-        </Pressable>
+        <Row gap={8}>
+          <CircleBtn
+            size={44}
+            label={mode === "dark" ? "Switch to Light Luxury" : "Switch to Full Dark Midnight"}
+            onPress={toggle}
+            icon={
+              mode === "dark" ? (
+                <Sun size={18} strokeWidth={ICON.stroke} color={colors.lime} />
+              ) : (
+                <Moon size={18} strokeWidth={ICON.stroke} color={colors.ink} />
+              )
+            }
+          />
+          <Pressable
+            onPress={() => router.push("/pro/wallet")}
+            style={{ height: 44, paddingHorizontal: 14, borderRadius: 22, backgroundColor: colors.card, flexDirection: "row", alignItems: "center", gap: 6 }}
+          >
+            <Wallet size={18} strokeWidth={ICON.stroke} color={colors.ink} />
+            <T style={{ fontFamily: F.medium }}>{d.credits} CC</T>
+          </Pressable>
+        </Row>
       </Row>
       <T v="title" style={{ marginTop: 18 }}>Hi, {me.name.split(" ")[0]}</T>
 
-      <Card dark={!online} style={{ marginTop: 18, minHeight: 196, justifyContent: "space-between", backgroundColor: online ? C.lime : C.brand, padding: 22, gap: 10 }}>
+      <Card dark={!online} style={{ marginTop: 18, minHeight: 196, justifyContent: "space-between", backgroundColor: online ? colors.lime : colors.brand, padding: 22, gap: 10 }}>
         <Row style={{ justifyContent: "space-between" }}>
-          <T v="label" style={{ color: online ? C.ink : "#BDBDB7" }}>Status</T>
-          <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: online ? C.success : "#6B6E74" }} />
+          <T v="label" style={{ color: online ? colors.onLime : "#D8CCE8" }}>Status</T>
+          <View style={{ width: 14, height: 14, borderRadius: 7, backgroundColor: online ? colors.success : "#804A8A" }} />
         </Row>
-        <T style={{ fontFamily: F.regular, fontSize: 52, lineHeight: 58, letterSpacing: -1.6, color: online ? C.ink : "#FFFFFF" }}>
+        <T style={{ fontFamily: F.regular, fontSize: 52, lineHeight: 58, letterSpacing: -1.6, color: online ? colors.onLime : "#FFFFFF" }}>
           {online ? "Online" : "Offline"}
         </T>
-        <T style={{ fontFamily: online ? F.medium : F.regular, color: online ? C.ink : "#BDBDB7" }}>
+        <T style={{ fontFamily: online ? F.medium : F.regular, color: online ? colors.onLime : "#D8CCE8" }}>
           {online
             ? `⏱ ${timeLeft(d.onlineUntil, now)} left · clients in ${d.area} can find you`
             : "Clients can't see you right now"}

@@ -5,6 +5,7 @@ import { useConvexAuth, useMutation, useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "@/convex/_generated/api";
 import { Screen, T, Btn, Card, Row, Chip, Field, ErrorNote } from "@/components/ui";
+import { useTheme } from "@/components/ThemeProvider";
 import { C } from "@/lib/theme";
 import { prettyPhone, errorMessage } from "@/lib/util";
 import { CITY_NAMES } from "@/lib/areas";
@@ -12,6 +13,7 @@ import { CITY_NAMES } from "@/lib/areas";
 const SUPPORT = process.env.EXPO_PUBLIC_SUPPORT_WHATSAPP;
 
 export function AccountScreen({ extra }: { extra?: React.ReactNode }) {
+  const { mode, setMode } = useTheme();
   const { isAuthenticated } = useConvexAuth();
   const { signOut } = useAuthActions();
   const me = useQuery(api.users.me, isAuthenticated ? {} : "skip");
@@ -29,6 +31,13 @@ export function AccountScreen({ extra }: { extra?: React.ReactNode }) {
           <Btn label="Join as a therapist" tone="dark" onPress={() => router.push("/auth/sign-in?as=therapist")} />
           <Btn label="List your hotel" tone="light" onPress={() => router.push("/auth/sign-in?as=hotel")} />
         </View>
+        <Card style={{ marginTop: 20, gap: 10 }}>
+          <T v="label">Appearance</T>
+          <Row>
+            <Chip label="Light Luxury" active={mode === "light"} onPress={() => setMode("light")} />
+            <Chip label="Full Dark Midnight" active={mode === "dark"} onPress={() => setMode("dark")} />
+          </Row>
+        </Card>
       </Screen>
     );
   }
@@ -85,6 +94,14 @@ export function AccountScreen({ extra }: { extra?: React.ReactNode }) {
             }
           />
         ) : null}
+      </Card>
+
+      <Card style={{ marginTop: 20, gap: 10 }}>
+        <T v="label">Appearance</T>
+        <Row>
+          <Chip label="Light Luxury" active={mode === "light"} onPress={() => setMode("light")} />
+          <Chip label="Full Dark Midnight" active={mode === "dark"} onPress={() => setMode("dark")} />
+        </Row>
       </Card>
 
       {extra}

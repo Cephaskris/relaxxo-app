@@ -18,8 +18,8 @@ import {
 } from "@expo-google-fonts/outfit";
 import { api } from "@/convex/_generated/api";
 import { LocationProvider } from "@/components/LocationProvider";
+import { ThemeProvider, useTheme } from "@/components/ThemeProvider";
 import { Loading } from "@/components/ui";
-import { C } from "@/lib/theme";
 
 const convexUrl =
   process.env.EXPO_PUBLIC_CONVEX_URL || "https://perfect-squid-3.convex.cloud";
@@ -67,18 +67,29 @@ function PushRegistration() {
   return null;
 }
 
+function AppShell() {
+  const { mode, colors } = useTheme();
+  return (
+    <>
+      <StatusBar style={mode === "dark" ? "light" : "dark"} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }} />
+    </>
+  );
+}
+
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({ Outfit_300Light, Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold });
   if (!fontsLoaded) return <Loading />;
   return (
     <SafeAreaProvider>
-      <ConvexAuthProvider client={convex} storage={Platform.OS === "web" ? undefined : secureStorage}>
-        <LocationProvider>
-          <PushRegistration />
-          <StatusBar style="dark" />
-          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.bg } }} />
-        </LocationProvider>
-      </ConvexAuthProvider>
+      <ThemeProvider>
+        <ConvexAuthProvider client={convex} storage={Platform.OS === "web" ? undefined : secureStorage}>
+          <LocationProvider>
+            <PushRegistration />
+            <AppShell />
+          </LocationProvider>
+        </ConvexAuthProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

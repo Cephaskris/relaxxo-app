@@ -3,19 +3,21 @@ import { Image, Pressable, ScrollView, View } from "react-native";
 import { router } from "expo-router";
 import { useConvexAuth, useQuery } from "convex/react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MapPin, ChevronDown, Search, LocateFixed, Check } from "lucide-react-native";
+import { MapPin, ChevronDown, Search, LocateFixed, Check, Sun, Moon } from "lucide-react-native";
 import { api } from "@/convex/_generated/api";
 import { T, Chip, Row, Btn, CircleBtn, Field, ErrorNote } from "@/components/ui";
 import { AreaWheel } from "@/components/AreaWheel";
 import { PlaceSearch } from "@/components/PlaceSearch";
 import { Sheet } from "@/components/Sheet";
 import { useLoc } from "@/components/LocationProvider";
+import { useTheme } from "@/components/ThemeProvider";
 import { CITIES, CITY_NAMES } from "@/lib/areas";
 import { C, F, ICON } from "@/lib/theme";
 import { errorMessage } from "@/lib/util";
 
 export default function ClientHome() {
   const loc = useLoc();
+  const { mode: themeMode, colors, toggle } = useTheme();
   const { isAuthenticated } = useConvexAuth();
   const [mode, setMode] = useState<"therapists" | "stays">("therapists");
   const [stateDropdownOpen, setStateDropdownOpen] = useState(false);
@@ -81,7 +83,7 @@ export default function ClientHome() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }} edges={["top"]}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={["top"]}>
       <View style={{ flex: 1, width: "100%", maxWidth: 560, alignSelf: "center" }}>
         <Row style={{ justifyContent: "space-between", paddingHorizontal: 24, paddingTop: 12 }}>
           <Row gap={10}>
@@ -103,12 +105,12 @@ export default function ClientHome() {
                 height: 52,
                 paddingHorizontal: 16,
                 borderRadius: 26,
-                backgroundColor: C.card,
+                backgroundColor: colors.card,
               }}
             >
-              <MapPin size={20} strokeWidth={ICON.stroke} color={C.brand} />
+              <MapPin size={20} strokeWidth={ICON.stroke} color={colors.lime} />
               <T style={{ fontFamily: F.medium, fontSize: 16 }}>{loc.city}</T>
-              <ChevronDown size={18} strokeWidth={ICON.stroke} color={C.ink} />
+              <ChevronDown size={18} strokeWidth={ICON.stroke} color={colors.ink} />
             </Pressable>
           </Row>
           <Row gap={8}>
@@ -120,18 +122,29 @@ export default function ClientHome() {
                   height: 52,
                   paddingHorizontal: 18,
                   borderRadius: 26,
-                  backgroundColor: C.ink,
+                  backgroundColor: colors.brand,
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <T style={{ color: "#FFFFFF", fontSize: 14 }}>Log in</T>
+                <T style={{ color: colors.onBrand, fontSize: 14 }}>Log in</T>
               </Pressable>
             ) : null}
             <CircleBtn
+              label={themeMode === "dark" ? "Switch to Light Luxury" : "Switch to Full Dark Midnight"}
+              onPress={toggle}
+              icon={
+                themeMode === "dark" ? (
+                  <Sun size={20} strokeWidth={ICON.stroke} color={colors.lime} />
+                ) : (
+                  <Moon size={20} strokeWidth={ICON.stroke} color={colors.ink} />
+                )
+              }
+            />
+            <CircleBtn
               label="Search an address"
               onPress={() => (isAuthenticated ? setSearchOpen(true) : router.push("/auth/sign-in"))}
-              icon={<Search size={ICON.size} strokeWidth={ICON.stroke} color={C.ink} />}
+              icon={<Search size={ICON.size} strokeWidth={ICON.stroke} color={colors.ink} />}
             />
           </Row>
         </Row>
